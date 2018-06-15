@@ -32,6 +32,7 @@ list.files()
 # **************************************************************************** #
 
 # library(readxl)
+# install.packages(data.table)
 library(data.table)
 library(tidyr)
 library(dplyr)
@@ -44,18 +45,27 @@ library(reshape2)
 #Read Data
 data.file.name="TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);ufhealth.abx
+billing<- read.csv(data.file.path);
 
 # look at data
 dat=billing
 head(dat); str(dat); names(dat)
+
+# **************************************************************************** #
+# ***************  General data formatting                                             
+# **************************************************************************** # 
+
+# what is the ordering of redcap_events
+levels(dat$redcap_event_name)
+levels(df$redcap_event_name)
 
 # format variables
 df <- dat %>% 
   mutate(redcap_event_name = factor(redcap_event_name, 
                                     levels = c("third_trimester_arm_1", 
                                                "two_week_arm_1", 
-                                               "two_month_arm_1")))
+                                               "two_month_arm_1",
+                                               "six_month_arm_1")))
 
 # drop NA observations
 dat.s=df %>%
@@ -66,12 +76,13 @@ dat.s=df %>%
 # how much per visit/participant?
 test=dat.s %>%
   group_by(test_id, redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
+  summarize(count=n_distinct(crc_service),
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
 test %>%
   group_by(redcap_event_name) %>%
-  summarize(mean(bill_sum),
+  summarize(count=n_distinct(test_id),
+    mean(bill_sum),
             min(bill_sum),
             max(bill_sum))
 
