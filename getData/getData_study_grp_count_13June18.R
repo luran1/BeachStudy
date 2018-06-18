@@ -4,7 +4,7 @@
 # **************************************************************************** #
 
 # Author:      Dominick Lemas 
-# Date:        June 13, 2018 
+# Date:        June 18, 2018 
 # IRB:
 # Description: Data management for BMI and MOD groupings. 
 # Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_STUDY\RedCap
@@ -38,11 +38,11 @@ library(dplyr)
 library(reshape2)
 
 # **************************************************************************** #
-# ***************  TheBreastfeedingAndE_BMI_MOD_DATA_2018-06-13_2054.csv                                              
+# ***************  TheBreastfeedingAndE_ACTIVE_BMI_MOD_DATA_2018-06-18_2054.csv                                              
 # **************************************************************************** # 
 
 #Read Data
-data.file.name="TheBreastfeedingAndE_BMI_MOD_DATA_2018-06-13_2054.csv";data.file.name
+data.file.name="TheBreastfeedingAndE_ACTIVE_BMI_MOD_DATA_2018-06-18_2054.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
 dat<- read.csv(data.file.path);dat
 head(dat); str(dat); names(dat)
@@ -62,42 +62,20 @@ df <- dat %>%
 
 # recode
 df$bmi_grp=NA
-df$bmi_grp=ifelse(df$mom3t_prepreg_bmi<27,1,df$bmi_grp)
-df$bmi_grp=ifelse(df$mom3t_prepreg_bmi>29,2,df$bmi_grp)
+df$bmi_grp=ifelse(df$mom3t_prepreg_bmi<27,"NW",df$bmi_grp)
+df$bmi_grp=ifelse(df$mom3t_prepreg_bmi>29,"Ob",df$bmi_grp)
+df$bmi_grp=as.factor(df$bmi_grp)
+df$mom2wk_mod=as.factor(df$mom2wk_mod)
+df$mod==NA
+df$mod=ifelse(df$mom2wk_mod==2,"CS",df$mom2wk_mod)
+df$mod=ifelse(df$mom2wk_mod==1,"VG",df$mod)
 
-# drop NA observations
-dat.s=df %>%
-  na.omit() %>%
-  group_by(test_id, redcap_event_name) %>%
-  arrange(crc_date_of_service) 
+# Select out data
+df %>%
+  group_by(bmi_grp,mod) %>%
+  filter(redcap_event_name=='third_trimester_arm_1') %>%
+  tally() %>%
 
-# how much per visit/participant?
-test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-test %>%
-  group_by(redcap_event_name) %>%
-  summarize(mean(bill_sum),
-            min(bill_sum),
-            max(bill_sum))
 
-# how much per visit?
-dat.s %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
-
-# CRC= $640
-# Inc= $160
-# Part= $800
-
-80*800= $64,000
+  
 
