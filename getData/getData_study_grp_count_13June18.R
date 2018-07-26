@@ -4,7 +4,7 @@
 # **************************************************************************** #
 
 # Author:      Dominick Lemas 
-# Date:        June 18, 2018 
+# Date:        July 26, 2018 
 # IRB:
 # Description: Data management for BMI and MOD groupings. 
 # Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_STUDY\RedCap
@@ -38,11 +38,11 @@ library(dplyr)
 library(reshape2)
 
 # **************************************************************************** #
-# ***************  TheBreastfeedingAndE_ACTIVE_BMI_MOD_DATA_2018-06-18_2054.csv                                              
+# ***************  TheBreastfeedingAndE_ACTIVE_BMI_MOD_DATA_2018-07-26_1605.csv                                              
 # **************************************************************************** # 
 
 #Read Data
-data.file.name="TheBreastfeedingAndE_ACTIVE_BMI_MOD_DATA_2018-06-18_2054.csv";data.file.name
+data.file.name="TheBreastfeedingAndE_ACTIVE_BMI_MOD_DATA_2018-07-26_1605.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
 dat<- read.csv(data.file.path);dat
 head(dat); str(dat); names(dat)
