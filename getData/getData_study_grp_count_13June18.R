@@ -74,7 +74,7 @@ df$mod=ifelse(df$mom2wk_mod==1,"VG",df$mod)
 df %>%
   group_by(bmi_grp,mod) %>%
   filter(redcap_event_name=='third_trimester_arm_1') %>%
-  tally() %>%
+  tally() 
 
 
   
