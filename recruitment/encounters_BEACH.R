@@ -49,11 +49,17 @@ encounter<- read.csv(data.file.path)
 
 # what are the variable names
 names(encounter)
+head(encounter)
              
 # limit to only a few variables
 encounter.s=encounter[,c(1,3:4)]
 names(encounter.s)
-         
+head(encounter.s)
+
+# **************************************************************************** #
+# ***************  format data                                              
+# **************************************************************************** # 
+
 # what is the structure of the data
 str(encounter.s)
 
@@ -62,8 +68,6 @@ encounter.s$encounter_date_int=as.Date(encounter.s$encounter_date_int, "%m/%d/%Y
 encounter.s$encounter_type_int=as.factor(encounter.s$encounter_type_int)
 encounter.s$encounter_type_int=recode(encounter.s$encounter_type_int, "1"="email", "2"="phone", "3"="other")
 levels(encounter.s$encounter_type_int)
-
-source("https://raw.githubusercontent.com/janhove/janhove.github.io/master/RCode/sortLvls.R")
 
 # format dates for plot
 df2=encounter.s %>%
@@ -78,9 +82,11 @@ df2=encounter.s %>%
   df2$month_yr <- ordered(df2$month_yr, levels = c("Jun_2017","Oct_2017","Nov_2017","Dec_2017","Jan_2018",
                                                 "Feb_2018","Mar_2018","Apr_2018","May_2018"))
   
+# **************************************************************************** #
+# ***************  plot data                                              
+# **************************************************************************** # 
 
 # plot counts of "encounter_type_int" according to time
-ggplot(df2, aes(x=month_yr, y=n, fill=encounter_type_int)) + 
-  geom_bar(stat="identity")
+p=ggplot(df2, aes(x=month_yr, y=n, fill=encounter_type_int)) + geom_bar(stat="identity")
 
-https://janhove.github.io/analysis/2016/08/18/ordering-factor-levels
+p+ggtitle("BEACH Interview Encounters: \n 2017-2018")
