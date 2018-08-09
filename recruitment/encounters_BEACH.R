@@ -1,4 +1,34 @@
-# this code is for analyzing BEACH recruitment encounters
+##-------------- 
+# **************************************************************************** #
+# ***************                Project Overview              *************** #
+# **************************************************************************** #
+
+# Author:      Dominick Lemas 
+# Date:        August 08, 2018 
+# IRB:
+# Description: Analysis of recruitment/encounter data extracted from RedCap. 
+# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_INTERVIEW\RedCap\ALL_DATA
+# Obj: Format data and basic analysis.
+
+# **************************************************************************** #
+# ***************                Directory Variables           *************** #
+# **************************************************************************** #
+
+# Computer
+# location="djlemas";location
+# location="Dominick";location
+
+# Directory Locations
+work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\RedCap\\ALL_DATA\\",sep="");work.dir
+data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\RedCap\\ALL_DATA\\",sep="");data.dir
+
+# Set Working Directory
+setwd(work.dir)
+list.files()
+
+# **************************************************************************** #
+# ***************                Library                       *************** #
+# **************************************************************************** #
 
 # Load libraries (run the install first time for package)
 # install.packages("ggplot2")
@@ -8,8 +38,14 @@ library(ggplot2)
 library(lubridate)
 library(dplyr)
 
-# open data
-encounter <- read.csv("C:/Users/djlemas/Dropbox (UFL)/02_Projects/BEACH_INTERVIEW/RedCap/ALL_DATA/BEACHInterviewOperat_ENCOUNTER_DATA_2018-08-08_1407.csv")
+# **************************************************************************** #
+# ***************  BEACHInterviewOperat_ENCOUNTER_DATA_2018-08-08_1407.csv                                              
+# **************************************************************************** # 
+
+#Read Data
+data.file.name="BEACHInterviewOperat_ENCOUNTER_DATA_2018-08-08_1407.csv";data.file.name
+data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
+encounter<- read.csv(data.file.path)
 
 # what are the variable names
 names(encounter)
