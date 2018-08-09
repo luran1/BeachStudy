@@ -60,6 +60,10 @@ str(encounter.s)
 # reformat variables
 encounter.s$encounter_date_int=as.Date(encounter.s$encounter_date_int, "%m/%d/%Y")
 encounter.s$encounter_type_int=as.factor(encounter.s$encounter_type_int)
+encounter.s$encounter_type_int=recode(encounter.s$encounter_type_int, "1"="email", "2"="phone", "3"="other")
+levels(encounter.s$encounter_type_int)
+
+source("https://raw.githubusercontent.com/janhove/janhove.github.io/master/RCode/sortLvls.R")
 
 # format dates for plot
 df2=encounter.s %>%
@@ -68,17 +72,15 @@ df2=encounter.s %>%
   group_by(year_name,month_name,encounter_type_int) %>%
   tally() %>%
   mutate(month_yr=paste(month_name,year_name, sep="_")) 
+  df2$month_yr=as.factor(df2$month_yr)
+  levels(df2$month_yr)
+
+  df2$month_yr <- ordered(df2$month_yr, levels = c("Jun_2017","Oct_2017","Nov_2017","Dec_2017","Jan_2018",
+                                                "Feb_2018","Mar_2018","Apr_2018","May_2018"))
   
-  
+
+# plot counts of "encounter_type_int" according to time
 ggplot(df2, aes(x=month_yr, y=n, fill=encounter_type_int)) + 
   geom_bar(stat="identity")
 
-# note: encounter_type_int, 1=email, 2=phone, 3=other
-
-
-# plot counts of "encounter_type_int" according to time
-
-ggplot(encounter.s, aes(x=encounter_date_int, y=encounter_type_int)) + geom_line() +
-
-# https://blog.exploratory.io/5-most-practically-useful-operations-when-working-with-date-and-time-in-r-9f9eb8a17465
-# https://blog.exploratory.io/filter-with-date-function-ce8e84be680
+https://janhove.github.io/analysis/2016/08/18/ordering-factor-levels
