@@ -4,7 +4,7 @@
 # **************************************************************************** #
 
 # Author:      Dominick Lemas 
-# Date:        August 08, 2018 
+# Date:        August 17, 2018 
 # IRB:
 # Description: Analysis of recruitment/encounter data extracted from RedCap. 
 # Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_INTERVIEW\RedCap\ALL_DATA
