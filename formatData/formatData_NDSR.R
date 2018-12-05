@@ -58,11 +58,11 @@ library(reshape2)
 
 dat=data.frame(
   test_id=as.character(),
-  variable1=as.numeric()
+  total_energy_kcal=as.numeric()
 )
 
-# Read Data File: 04 (NAME OF FILE)
+# Read Data File: 03 (NAME OF FILE)
 #-------------------
-data.import.file.path=paste0(data.dir,data.directory.name.import,"\\",data.directory.name.import,"04.txt");data.import.file.path
+data.import.file.path=paste0(data.dir,data.directory.name.import,"\\",data.directory.name.import,"03.txt");data.import.file.path
 dat<- read.csv(data.import.file.path, sep="\t", header=F);
 
