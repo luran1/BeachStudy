@@ -33,8 +33,10 @@ list.files()
 # library(readxl)
 library(data.table)
 library(tidyr)
+library(tidyverse)
 library(dplyr)
 library(reshape2)
+library(lubridate)
 
 # **************************************************************************** #
 # ***************  Data File: 03                                              
@@ -43,8 +45,11 @@ library(reshape2)
 #Read Data
 data.file.name="BLS053A03.txt";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-dat<- read.csv(data.file.path, sep="\t", header=F);dat
+dat<- read_tsv(data.file.path);dat
 head(dat); str(dat); names(dat)
+
+# record day number
+record_day_number=length(as.character(unique(dat[[3]])))
 
 # format variables
 df <- dat %>% 
