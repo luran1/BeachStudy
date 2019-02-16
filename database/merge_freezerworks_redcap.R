@@ -10,6 +10,14 @@
 # Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_STUDY\RedCap
 # Obj: export merged dataset that can link freezerworks and redcap.
 
+
+# **************************************************************************** #
+# ***************                Library                       *************** #
+# **************************************************************************** #
+
+library(readr)
+library(dplyr)
+
 # **************************************************************************** #
 # ***************                Directory Variables           *************** #
 # **************************************************************************** #
@@ -18,88 +26,90 @@
 # location="djlemas";location
 
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\tables\\",sep="");out.dir
+work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\merge\\",sep="");work.dir
+data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\merge\\",sep="");data.dir
+out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\merge\\",sep="");out.dir
 
 # Set Working Directory
 setwd(work.dir)
 list.files()
 
-# **************************************************************************** #
-# ***************                Library                       *************** #
-# **************************************************************************** #
-
-# library(readxl)
-# install.packages(data.table)
-library(data.table)
-library(tidyr)
-library(dplyr)
-library(reshape2)
+# Data file names
+data.file.name.freezerworks="BEACH_Freezer_Export_13Feb19.txt";data.file.name.freezerworks
+data.file.name.redcap="RedCap_Freezerworks_Link_noPHI_1158Lemas_13Feb19.txt";data.file.name.redcap
 
 # **************************************************************************** #
-# ***************  TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv                                              
+# ***************  Import Data                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);
+#Read RedCap Data
+#----------------
+redcap.file.path=paste0(data.dir,"",data.file.name.redcap);redcap.file.path
+redcap<- read_tsv(redcap.file.path);
 
 # look at data
-dat=billing
-head(dat); str(dat); names(dat)
+head(redcap); str(redcap); names(redcap)
+length(redcap$Participant_ID)               # 1217
+length(unique(redcap$crc_specimen_barcode)) # 1181
+length(unique(redcap$Participant_ID))       # 68
+
+# format for merge
+df.r=redcap%>%
+  select(Participant_ID, crc_specimen_number, crc_specimen_barcode, clinic_visit_date.r, clinic_visit)
+
+#Read fREEZERWORKS Data
+#----------------
+freezer.file.path=paste0(data.dir,"",data.file.name.freezerworks);freezer.file.path
+freezer<- read_tsv(freezer.file.path);
+
+# look at data
+head(freezer); str(freezer); names(freezer)
+length(freezer$Participant_ID)               # 1860
+length(unique(freezer$crc_specimen_barcode)) # 1860
+length(unique(freezer$Participant_ID))       #83
+
+# format for merge
+df.f=freezer%>%
+  select(Participant_ID, crc_specimen_number, crc_specimen_barcode, "Globally Unique Aliquot ID", clinic_visit_date, clinic_visit)%>%
+  rename(globally_unique_aliquot_ID="Globally Unique Aliquot ID")
+
 
 # **************************************************************************** #
-# ***************  General data formatting                                             
+# ***************  merging data sets
 # **************************************************************************** # 
 
+# freezerworked MERGED into Redcap. Size of data set will be redcap # rows
+
+merge.r=left_join(df.r, df.f, by=c("Participant_ID","crc_specimen_barcode"))
+length(unique(merge.r$crc_specimen_barcode)) # 1181
+length(unique(merge.r$Participant_ID))       # 68
+
+# **************************************************************************** #
+# ***************  format data set
+# **************************************************************************** #
+
+merge.r1=merge.r%>%
+  rename(crc_specimen_number=crc_specimen_number.x, crc_specimen_number=crc_specimen_number.y)
+
+names(merge.r1)
 # what is the ordering of redcap_events
-levels(dat$redcap_event_name)
-levels(df$redcap_event_name)
+levels(merge.r$clinic_visit)
 
 # format variables
 df <- dat %>% 
   mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("third_trimester_arm_1", 
-                                               "two_week_arm_1", 
-                                               "two_month_arm_1",
-                                               "six_month_arm_1")))
+                                    levels = c("3rd_trimester", 
+                                               "2_week", 
+                                               "2_months",
+                                               "6_months",
+                                               "12_months")))
 
-# drop NA observations
-dat.s=df %>%
-  na.omit() %>%
-  group_by(test_id, redcap_event_name) %>%
-  arrange(crc_date_of_service) 
+# **************************************************************************** #
+# ***************  Export data set
+# **************************************************************************** #
 
-# how much per visit/participant?
-test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
-  summarize(count=n_distinct(crc_service),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-test %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-    mean(bill_sum),
-            min(bill_sum),
-            max(bill_sum))
-
-# how much per visit?
-dat.s %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
-
-# CRC= $640
-# Inc= $160
-# Part= $800
-
-80*800= $64,000
+names(merge.r)
+merged.file.name.redcap="merged_redcap_freezer.txt"
+merge.file.path=paste0(out.dir,"",merged.file.name.redcap="merged_redcap_freezer.txt");merge.file.path
+write.csv(merge.r, file=merge.file.path,row.names=FALSE)
 
