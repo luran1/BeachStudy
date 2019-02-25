@@ -15,7 +15,7 @@
 # **************************************************************************** #
 
 # Computer
-# location="djlemas";location
+location="djlemas";location
 
 # Directory Locations
 work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\NDSR\\BLS053A",sep="");work.dir
@@ -45,41 +45,18 @@ library(lubridate)
 #Read Data
 data.file.name="BLS053A03.txt";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-dat<- read_tsv(data.file.path);dat
+dat<- read_tsv(data.file.path, col_names=FALSE);dat
 head(dat); str(dat); names(dat)
 
 # record day number
 record_day_number=length(as.character(unique(dat[[3]])))
 
-# format variables
-df <- dat %>% 
-  group_by(test_id) %>%
-  select(test_id, redcap_event_name, mom3t_prepreg_bmi, mom2wk_mod) %>%
-  mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("third_trimester_arm_1", 
-                                               "two_week_arm_1", 
-                                               "two_month_arm_1",
-                                               "six_month_arm_1",
-                                               "twelve_month_arm_1"))) %>%
-  mutate(mom3t_prepreg_bmi=first(mom3t_prepreg_bmi)) %>%
-  mutate(mom2wk_mod=first(na.omit(mom2wk_mod))) 
+# create average for each column
+df=dat %>%
+  summarize(mean(X7),mean(X8)) %>%
+  select('var'='mean(X7)', everything())
 
-# recode
-df$bmi_grp=NA
-df$bmi_grp=ifelse(df$mom3t_prepreg_bmi<27,"NW",df$bmi_grp)
-df$bmi_grp=ifelse(df$mom3t_prepreg_bmi>29,"Ob",df$bmi_grp)
-df$bmi_grp=as.factor(df$bmi_grp)
-df$mom2wk_mod=as.factor(df$mom2wk_mod)
-df$mod==NA
-df$mod=ifelse(df$mom2wk_mod==2,"CS",df$mom2wk_mod)
-df$mod=ifelse(df$mom2wk_mod==1,"VG",df$mod)
-
-# Select out data
-df %>%
-  group_by(bmi_grp,mod) %>%
-  filter(redcap_event_name=='third_trimester_arm_1') %>%
-  tally() 
-
-
+# export data
+df1=as.data.frame(df)
   
 
