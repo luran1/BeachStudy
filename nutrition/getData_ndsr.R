@@ -58,11 +58,25 @@ ndsr.file.path=paste0(data.dir,"\\",ndsr.file.name);ndsr.file.path
 dat<- read_tsv(ndsr.file.path, col_names=FALSE);dat
 head(dat); str(dat); names(dat)
 
+# merge names from redcap into ndsr
+overlap.old=intersect(redcap$ndsr_col,names(dat))
+length(names(dat))
+length(redcap$ndsr_col)
+length(overlap.old)
+dat1=dat
+names(dat1)=ifelse(names(dat) %in% redcap$ndsr_col, redcap$variable_name, NA)
+names(dat)
+names(dat1)
+
+# drop columns with NA
+dat2=dat1%>%
+  select(!NA)
+
 # record day number
-record_day_number=length(as.character(unique(dat[[3]])))
+record_day_number=length(as.character(unique(dat1[[3]])))
 
 # create average for each column
-df=dat %>%
+df=dat1 %>%
   summarize(mean(X7),mean(X8)) %>%
   select('var'='mean(X7)', everything())
 
