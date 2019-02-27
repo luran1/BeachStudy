@@ -31,21 +31,27 @@ list.files()
 # **************************************************************************** #
 
 # library(readxl)
-library(data.table)
-library(tidyr)
+# library(data.table)
+# library(tidyr)
 library(tidyverse)
 library(dplyr)
-library(reshape2)
-library(lubridate)
+# library(reshape2)
+# library(lubridate)
 
 # **************************************************************************** #
 # ***************  Data File: 03                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="BLS053A03.txt";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-dat<- read_tsv(data.file.path, col_names=FALSE);dat
+# Input RedCap Names
+redcap.file.name="NDSR_names.csv";redcap.file.name
+redcap.file.path=paste0(data.dir,"\\",redcap.file.name);redcap.file.path
+redcap<- read_csv(redcap.file.path, col_names=FALSE);redcap
+head(redcap); str(redcap); names(redcap)
+
+# Input Diet Data
+ndsr.file.name="BLS053A03.txt";ndsr.file.name
+ndsr.file.path=paste0(data.dir,"\\",ndsr.file.name);ndsr.file.path
+dat<- read_tsv(ndsr.file.path, col_names=FALSE);dat
 head(dat); str(dat); names(dat)
 
 # record day number
