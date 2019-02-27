@@ -45,8 +45,12 @@ library(dplyr)
 # Input RedCap Names
 redcap.file.name="NDSR_names.csv";redcap.file.name
 redcap.file.path=paste0(data.dir,"\\",redcap.file.name);redcap.file.path
-redcap<- read_csv(redcap.file.path, col_names=FALSE);redcap
+redcap<- read_csv(redcap.file.path, col_names=TRUE);redcap
 head(redcap); str(redcap); names(redcap)
+  # format data
+  redcap$X6=paste0("X",redcap$column)
+  redcap=redcap%>%
+    select(everything(),"ndsr_col"="X6")
 
 # Input Diet Data
 ndsr.file.name="BLS053A03.txt";ndsr.file.name
