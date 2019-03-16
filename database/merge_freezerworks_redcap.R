@@ -19,6 +19,7 @@
 
 library(readr)
 library(dplyr)
+library(tidyr)
 
 # **************************************************************************** #
 # ***************                Directory Variables           *************** #
@@ -136,10 +137,17 @@ table(df$flag_clinic_visit)
 # ***************  format data set for freezerworks
 # **************************************************************************** #
 
+# check 
+dim(df)
+length(unique(df$Participant_ID))
+
 merge.r1=df%>%
-  select(Participant_ID,crc_specimen_barcode,crc_specimen_number.x,GUAliquotID,clinic_visit_date.r,flag_date,clinic_visit.x,flag_clinic_visit) %>%
-  rename(crc_specimen_number=crc_specimen_number.x, clinic_visit_date=clinic_visit_date.r,clinic_visit=clinic_visit.x)
+  select(Participant_ID,crc_specimen_barcode,clinic_visit_date.r,flag_date,clinic_visit.x,flag_clinic_visit) %>%
+  rename(clinic_visit_date=clinic_visit_date.r,clinic_visit=clinic_visit.x) %>% 
+  drop_na(Participant_ID, crc_specimen_barcode)  # drop rows with no part_id and barcode. 
 names(merge.r1)
+dim(merge.r1)
+length(unique(merge.r1$Participant_ID))
 
 # check levels
 levels(merge.r1$clinic_visit)
@@ -156,7 +164,7 @@ names(merge.r1)
 # final data
 merge.final=merge.r1
 
-# export data
+# export data (need to be tab delimited for freezerworks)  # change needed
 merged.file.name.redcap="merged_redcap_freezer.txt"
 merge.file.path=paste0(out.dir,"",merged.file.name.redcap="merged_redcap_freezer.txt");merge.file.path
 write.csv(merge.final, file=merge.file.path,row.names=FALSE)
