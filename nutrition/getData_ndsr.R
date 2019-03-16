@@ -15,7 +15,7 @@
 # **************************************************************************** #
 
 # Computer
-# location="djlemas";location
+location="djlemas";location
 
 # Directory Locations
 work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\NDSR\\BLS053A",sep="");work.dir
@@ -31,55 +31,56 @@ list.files()
 # **************************************************************************** #
 
 # library(readxl)
-library(data.table)
-library(tidyr)
+# library(data.table)
+# library(tidyr)
 library(tidyverse)
 library(dplyr)
-library(reshape2)
-library(lubridate)
+# library(reshape2)
+# library(lubridate)
 
 # **************************************************************************** #
 # ***************  Data File: 03                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="BLS053A03.txt";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-dat<- read_tsv(data.file.path);dat
+# Input RedCap Names
+redcap.file.name="NDSR_names.csv";redcap.file.name
+redcap.file.path=paste0(data.dir,"\\",redcap.file.name);redcap.file.path
+redcap<- read_csv(redcap.file.path, col_names=TRUE);redcap
+head(redcap); str(redcap); names(redcap)
+  # format data
+  redcap$X6=paste0("X",redcap$column)
+  redcap=redcap%>%
+    select(everything(),"ndsr_col"="X6")
+
+# Input Diet Data
+ndsr.file.name="BLS053A03.txt";ndsr.file.name
+ndsr.file.path=paste0(data.dir,"\\",ndsr.file.name);ndsr.file.path
+dat<- read_tsv(ndsr.file.path, col_names=FALSE);dat
 head(dat); str(dat); names(dat)
 
+# merge names from redcap into ndsr
+overlap.old=intersect(redcap$ndsr_col,names(dat))
+length(names(dat))
+length(redcap$ndsr_col)
+length(overlap.old)
+dat1=dat
+names(dat1)=ifelse(names(dat) %in% redcap$ndsr_col, redcap$variable_name, NA)
+names(dat)
+names(dat1)
+
+# drop columns with NA
+dat2=dat1%>%
+  select(!NA)
+
 # record day number
-record_day_number=length(as.character(unique(dat[[3]])))
+record_day_number=length(as.character(unique(dat1[[3]])))
 
-# format variables
-df <- dat %>% 
-  group_by(test_id) %>%
-  select(test_id, redcap_event_name, mom3t_prepreg_bmi, mom2wk_mod) %>%
-  mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("third_trimester_arm_1", 
-                                               "two_week_arm_1", 
-                                               "two_month_arm_1",
-                                               "six_month_arm_1",
-                                               "twelve_month_arm_1"))) %>%
-  mutate(mom3t_prepreg_bmi=first(mom3t_prepreg_bmi)) %>%
-  mutate(mom2wk_mod=first(na.omit(mom2wk_mod))) 
+# create average for each column
+df=dat1 %>%
+  summarize(mean(X7),mean(X8)) %>%
+  select('var'='mean(X7)', everything())
 
-# recode
-df$bmi_grp=NA
-df$bmi_grp=ifelse(df$mom3t_prepreg_bmi<27,"NW",df$bmi_grp)
-df$bmi_grp=ifelse(df$mom3t_prepreg_bmi>29,"Ob",df$bmi_grp)
-df$bmi_grp=as.factor(df$bmi_grp)
-df$mom2wk_mod=as.factor(df$mom2wk_mod)
-df$mod==NA
-df$mod=ifelse(df$mom2wk_mod==2,"CS",df$mom2wk_mod)
-df$mod=ifelse(df$mom2wk_mod==1,"VG",df$mod)
-
-# Select out data
-df %>%
-  group_by(bmi_grp,mod) %>%
-  filter(redcap_event_name=='third_trimester_arm_1') %>%
-  tally() 
-
-
+# export data
+df1=as.data.frame(df)
   
 
