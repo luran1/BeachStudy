@@ -4,10 +4,11 @@
 # **************************************************************************** #
 
 # Author:      Dominick Lemas 
-# Date:        June 08, 2018 
+# Date:        March 23, 2019 
 # IRB:
-# Description: Data management for CTSI/CRC billing and services data extracted from RedCap. 
-# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_STUDY\RedCap
+# Description: Data management for CTSI/CRC billing and services data 
+#              extracted from RedCap. 
+# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_STUDY\RedCap\ALL_DATA
 # Obj: Format data and basic analysis.
 
 # **************************************************************************** #
@@ -15,8 +16,7 @@
 # **************************************************************************** #
 
 # Computer
-# location="djlemas";location
-# location="Dominick";location
+location="djlemas";location
 
 # Directory Locations
 work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
@@ -31,19 +31,15 @@ list.files()
 # ***************                Library                       *************** #
 # **************************************************************************** #
 
-# library(readxl)
-# install.packages(data.table)
-library(data.table)
 library(tidyr)
 library(dplyr)
-library(reshape2)
 
 # **************************************************************************** #
-# ***************  TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv                                              
+# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
 # **************************************************************************** # 
 
 #Read Data
-data.file.name="TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv";data.file.name
+data.file.name="BEACH-CRCBilling_DATA_2019-03-23_1057.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
 billing<- read.csv(data.file.path);
 
@@ -57,15 +53,19 @@ head(dat); str(dat); names(dat)
 
 # what is the ordering of redcap_events
 levels(dat$redcap_event_name)
-levels(df$redcap_event_name)
 
-# format variables
+# set the order of redcap_events
 df <- dat %>% 
   mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("third_trimester_arm_1", 
+                                    levels = c("baseline_arm_1",
+                                               "third_trimester_arm_1", 
                                                "two_week_arm_1", 
                                                "two_month_arm_1",
-                                               "six_month_arm_1")))
+                                               "six_month_arm_1",
+                                               "twelve_month_arm_1")))
+# check odering of levels
+levels(df$redcap_event_name)
+
 
 # drop NA observations
 dat.s=df %>%
