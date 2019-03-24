@@ -4,10 +4,10 @@
 # **************************************************************************** #
 
 # Author:      Dominick Lemas 
-# Date:        June 08, 2018 
+# Date:        March 23, 2019 
 # IRB:
-# Description: Data management for CTSI/CRC billing and services data extracted from RedCap. 
-# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_STUDY\RedCap
+# Description: Data management for freezerworks aliquot data. 
+# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\FREEZERWORKS\BEACH_Study\Export
 # Obj: Format data and basic analysis.
 
 # **************************************************************************** #
@@ -15,13 +15,12 @@
 # **************************************************************************** #
 
 # Computer
-# location="djlemas";location
-# location="Dominick";location
+location="djlemas";location
 
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\tables\\",sep="");out.dir
+work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");work.dir
+data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");data.dir
+out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");out.dir
 
 # Set Working Directory
 setwd(work.dir)
@@ -31,24 +30,20 @@ list.files()
 # ***************                Library                       *************** #
 # **************************************************************************** #
 
-# library(readxl)
-# install.packages(data.table)
-library(data.table)
 library(tidyr)
 library(dplyr)
-library(reshape2)
 
 # **************************************************************************** #
-# ***************  TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv                                              
+# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
 # **************************************************************************** # 
 
 #Read Data
-data.file.name="TheBreastfeedingAndE_BILLING_DATA_2018-06-08_1318.csv";data.file.name
+data.file.name="Test_Export.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);
+freezer<- read.csv(data.file.path);
 
 # look at data
-dat=billing
+dat=freezer
 head(dat); str(dat); names(dat)
 
 # **************************************************************************** #
@@ -56,29 +51,38 @@ head(dat); str(dat); names(dat)
 # **************************************************************************** # 
 
 # what is the ordering of redcap_events
-levels(dat$redcap_event_name)
-levels(df$redcap_event_name)
+levels(dat$clinic_visit)
+# 
+# [1] ""              "12_months"     "2_months"      "2_week"        "2_weeks"       "3rd_trimester"
+# [7] "6_months"
 
-# format variables
+# need to identify the 2_week and 2_weeks entries. 
+# 50  187  206 1485 1794 1901
+which(dat$clinic_visit=="2_weeks")
+
+# set the order of redcap_events
 df <- dat %>% 
-  mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("third_trimester_arm_1", 
-                                               "two_week_arm_1", 
-                                               "two_month_arm_1",
-                                               "six_month_arm_1")))
+  mutate(clinic_visit = factor(clinic_visit, 
+                                    levels = c("3rd_trimester", 
+                                               "2_week", 
+                                               "2_month",
+                                               "6_months",
+                                               "12_month")))
+# check odering of levels
+levels(df$clinic_visit)
 
 # drop NA observations
 dat.s=df %>%
   na.omit() %>%
-  group_by(test_id, redcap_event_name) %>%
-  arrange(crc_date_of_service) 
+  group_by(part_id, clinic_visit) %>%
+  arrange(date) 
 
-# how much per visit/participant?
-test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
-  summarize(count=n_distinct(crc_service),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
+# how many tubes per participant?
+dat.s %>%
+  group_by(part_id,clinic_visit) %>%
+  summarize(count=n_distinct(barcode))
+            
+
 test %>%
   group_by(redcap_event_name) %>%
   summarize(count=n_distinct(test_id),
@@ -93,14 +97,4 @@ dat.s %>%
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
 
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
-
-# CRC= $640
-# Inc= $160
-# Part= $800
-
-80*800= $64,000
 
