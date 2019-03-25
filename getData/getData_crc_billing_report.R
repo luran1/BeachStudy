@@ -66,6 +66,8 @@ df <- dat %>%
 # check odering of levels
 levels(df$redcap_event_name)
 
+# set the services ordering
+
 
 # drop NA observations
 dat.s=df %>%
@@ -104,3 +106,6 @@ dat.s %>%
 
 80*800= $64,000
 
+# total costs over time from 2016-2019.
+
+table and figure. 
