@@ -4,10 +4,10 @@
 # **************************************************************************** #
 
 # Author:      Dominick Lemas 
-# Date:        March 23, 2019 
+# Date:        March 27, 2019 
 # IRB:
-# Description: Data management for freezerworks aliquot data. 
-# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\FREEZERWORKS\BEACH_Study\Export
+# Description: wordcloud data analysis for BEACH Interview project 
+# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\BEACH_INTERVIEW\03_Nvivo_Analysis\wordcloud
 # Obj: Format data and basic analysis.
 
 # **************************************************************************** #
@@ -18,9 +18,9 @@
 location="djlemas";location
 
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");out.dir
+work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");work.dir
+data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");data.dir
+out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");out.dir
 
 # Set Working Directory
 setwd(work.dir)
@@ -38,12 +38,12 @@ library(dplyr)
 # **************************************************************************** # 
 
 #Read Data
-data.file.name="Test_Export.csv";data.file.name
+data.file.name="BEACH-CRCBilling_DATA_2019-03-23_1057.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-freezer<- read.csv(data.file.path);
+billing<- read.csv(data.file.path);
 
 # look at data
-dat=freezer
+dat=billing
 head(dat); str(dat); names(dat)
 
 # **************************************************************************** #
@@ -51,42 +51,35 @@ head(dat); str(dat); names(dat)
 # **************************************************************************** # 
 
 # what is the ordering of redcap_events
-levels(dat$clinic_visit)
-# 
-# [1] ""              "12_months"     "2_months"      "2_week"        "2_weeks"       "3rd_trimester"
-# [7] "6_months"
-
-# need to identify the 2_week and 2_weeks entries. 
-# 50  187  206 1485 1794 1901
-which(dat$clinic_visit=="2_weeks") # 50  187  206 1485 1794 1901
-change=dat%>%
-  filter(clinic_visit=="2_weeks")
-  print(change$part_id)
-  
+levels(dat$redcap_event_name)
 
 # set the order of redcap_events
 df <- dat %>% 
-  mutate(clinic_visit = factor(clinic_visit, 
-                                    levels = c("3rd_trimester", 
-                                               "2_week", 
-                                               "2_month",
-                                               "6_months",
-                                               "12_month")))
+  mutate(redcap_event_name = factor(redcap_event_name, 
+                                    levels = c("baseline_arm_1",
+                                               "third_trimester_arm_1", 
+                                               "two_week_arm_1", 
+                                               "two_month_arm_1",
+                                               "six_month_arm_1",
+                                               "twelve_month_arm_1")))
 # check odering of levels
-levels(df$clinic_visit)
+levels(df$redcap_event_name)
+
+# set the services ordering
+
 
 # drop NA observations
 dat.s=df %>%
   na.omit() %>%
-  group_by(part_id, clinic_visit) %>%
-  arrange(date) 
+  group_by(test_id, redcap_event_name) %>%
+  arrange(crc_date_of_service) 
 
-# how many tubes per participant?
-dat.s %>%
-  group_by(part_id,clinic_visit) %>%
-  summarize(count=n_distinct(barcode))
-            
-
+# how much per visit/participant?
+test=dat.s %>%
+  group_by(test_id, redcap_event_name) %>%
+  summarize(count=n_distinct(crc_service),
+            bill_mean=mean(crc_amount_due, na.rm=T),
+            bill_sum=sum(crc_amount_due))
 test %>%
   group_by(redcap_event_name) %>%
   summarize(count=n_distinct(test_id),
@@ -101,4 +94,17 @@ dat.s %>%
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
 
+# 3rd  $100
+# 2wk  $160
+# 2mo  $160
+# 12mo $160
 
+# CRC= $640
+# Inc= $160
+# Part= $800
+
+80*800= $64,000
+
+# total costs over time from 2016-2019.
+
+table and figure. 
