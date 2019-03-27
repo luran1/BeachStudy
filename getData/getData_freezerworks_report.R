@@ -58,7 +58,11 @@ levels(dat$clinic_visit)
 
 # need to identify the 2_week and 2_weeks entries. 
 # 50  187  206 1485 1794 1901
-which(dat$clinic_visit=="2_weeks")
+which(dat$clinic_visit=="2_weeks") # 50  187  206 1485 1794 1901
+change=dat%>%
+  filter(clinic_visit=="2_weeks")
+  print(change$part_id)
+  
 
 # set the order of redcap_events
 df <- dat %>% 
