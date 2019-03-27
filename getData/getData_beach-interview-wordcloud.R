@@ -32,79 +32,59 @@ list.files()
 
 library(tidyr)
 library(dplyr)
+library(readxl)
+
 
 # **************************************************************************** #
-# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
+# ***************  BIS Participants-WFQ.xlsx                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="BEACH-CRCBilling_DATA_2019-03-23_1057.csv";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);
+# file parameters
+n_max=10000
+bf.file.name="BIS Participants-WFQ.xlsx";bf.file.name
 
-# look at data
-dat=billing
-head(dat); str(dat); names(dat)
+
+#Read Data
+bf.group=read_xlsx(paste0(data.dir,bf.file.name), sheet = "Sheet1", range = NULL, col_names = TRUE,
+                      col_types = NULL, na = "NA", trim_ws = TRUE, skip = 0, n_max = Inf,
+                      guess_max = min(1000, n_max));bf.group
+
+
+# **************************************************************************** #
+# ***************  PRG Participants-WFQ.xlsx                                              
+# **************************************************************************** # 
+
+# file parameters
+n_max=10000
+prego.file.name="PRG Participants-WFQ.xlsx";prego.file.name
+
+
+#Read Data
+prego.group=read_xlsx(paste0(data.dir,prego.file.name), sheet = "Sheet1", range = NULL, col_names = TRUE,
+                   col_types = NULL, na = "NA", trim_ws = TRUE, skip = 0, n_max = Inf,
+                   guess_max = min(1000, n_max));prego.group
+
 
 # **************************************************************************** #
 # ***************  General data formatting                                             
 # **************************************************************************** # 
 
+# breastfeeding group
+bf.group.trim=bf.group%>%
+  select(Word,Length)%>%
+  rename_all(tolower)
+  bf.group.trim$group=c("bf")
+
+# pregnant group
+preg.group.trim=prego.group%>%
+    select(Word,Length)%>%
+    rename_all(tolower)
+   preg.group.trim$group=c("preg")
+  
+# merge data
+cloud=bind_rows(list(bf.group.trim, preg.group.trim))
+
 # what is the ordering of redcap_events
-levels(dat$redcap_event_name)
+cloud$group=as.factor(cloud$group)
 
-# set the order of redcap_events
-df <- dat %>% 
-  mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("baseline_arm_1",
-                                               "third_trimester_arm_1", 
-                                               "two_week_arm_1", 
-                                               "two_month_arm_1",
-                                               "six_month_arm_1",
-                                               "twelve_month_arm_1")))
-# check odering of levels
-levels(df$redcap_event_name)
-
-# set the services ordering
-
-
-# drop NA observations
-dat.s=df %>%
-  na.omit() %>%
-  group_by(test_id, redcap_event_name) %>%
-  arrange(crc_date_of_service) 
-
-# how much per visit/participant?
-test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
-  summarize(count=n_distinct(crc_service),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-test %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-    mean(bill_sum),
-            min(bill_sum),
-            max(bill_sum))
-
-# how much per visit?
-dat.s %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
-
-# CRC= $640
-# Inc= $160
-# Part= $800
-
-80*800= $64,000
-
-# total costs over time from 2016-2019.
-
-table and figure. 
+# ready for word cloud analysis
