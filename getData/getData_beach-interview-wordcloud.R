@@ -14,13 +14,10 @@
 # ***************                Directory Variables           *************** #
 # **************************************************************************** #
 
-# Computer
-location="djlemas";location
-
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");out.dir
+work.dir=paste(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");work.dir
+data.dir=paste(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");data.dir
+out.dir=paste(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");out.dir
 
 # Set Working Directory
 setwd(work.dir)
