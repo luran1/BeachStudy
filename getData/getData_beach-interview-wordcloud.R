@@ -37,6 +37,7 @@ library(RColorBrewer)
 library(tidyr)
 library(dplyr)
 library(readxl)
+library(wordcloud2)
 
 # **************************************************************************** #
 # ***************  BIS Participants-WFQ.xlsx                                              
@@ -77,12 +78,15 @@ bf.group.trim=bf.group%>%
   select(Word,Count)%>%
   rename_all(tolower)
   bf.group.trim$group=c("bf")
+  bf.group.trim$color=c("blue")
 
 # pregnant group
 preg.group.trim=prego.group%>%
     select(Word,Count)%>%
     rename_all(tolower)
    preg.group.trim$group=c("preg")
+   preg.group.trim$color=c("orange")
+   
   
 # merge data
 cloud=bind_rows(list(bf.group.trim, preg.group.trim))
@@ -113,6 +117,14 @@ wordcloud(words = df$word, freq = df$count, min.freq = 1,
           scale = c(3,0.5), random.color = FALSE,
           colors=brewer.pal(8, "Dark2")[factor(df$group)])
 
+# wordcloud2
+head(demoFreq)
+wordcloud2(demoFreq, size=1.6)
+wordcloud2(cloud, size=0.5,color=cloud$color)
+letterCloud(cloud, word = "R", wordSize = 1)
+wordcloud2(cloud, size = 0.5, minRotation = -pi/2, maxRotation = -pi/2, color=cloud$color)
+
+
 
 # example: https://stackoverflow.com/questions/50337874/color-based-on-groups-in-wordcloud-r
 https://www.r-bloggers.com/the-wordcloud2-library/
@@ -136,3 +148,6 @@ wordcloud(words = d$word, freq = d$freq, min.freq = 1,
           max.words=100, random.order=TRUE, rot.per=0.35,
           scale = c(3,0.5), random.color = FALSE,
           colors=brewer.pal(8, "Dark2")[factor(d$group)])
+
+
+
