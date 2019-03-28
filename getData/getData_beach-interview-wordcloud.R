@@ -26,11 +26,17 @@ list.files()
 # **************************************************************************** #
 # ***************                Library                       *************** #
 # **************************************************************************** #
+# install
+# install.packages(c("tm","SnowballC","wordcloud","RColorBrewer"))  
 
+# Load
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
 library(tidyr)
 library(dplyr)
 library(readxl)
-
 
 # **************************************************************************** #
 # ***************  BIS Participants-WFQ.xlsx                                              
@@ -68,13 +74,13 @@ prego.group=read_xlsx(paste0(data.dir,prego.file.name), sheet = "Sheet1", range 
 
 # breastfeeding group
 bf.group.trim=bf.group%>%
-  select(Word,Length)%>%
+  select(Word,Count)%>%
   rename_all(tolower)
   bf.group.trim$group=c("bf")
 
 # pregnant group
 preg.group.trim=prego.group%>%
-    select(Word,Length)%>%
+    select(Word,Count)%>%
     rename_all(tolower)
    preg.group.trim$group=c("preg")
   
@@ -84,4 +90,49 @@ cloud=bind_rows(list(bf.group.trim, preg.group.trim))
 # what is the ordering of redcap_events
 cloud$group=as.factor(cloud$group)
 
+# how many words overlap in both groups
+length(intersect(cloud$word[cloud$group=="bf"],cloud$word[cloud$group=="preg"]))
+word.overlap=unique(intersect(cloud$word[cloud$group=="bf"],cloud$word[cloud$group=="preg"]))
+
+#how many words total
+length(unique(cloud$word))
+
 # ready for word cloud analysis
+wordcloud(words = cloud$word, freq = cloud$count, min.freq = 1,
+          max.words=100, random.order=TRUE, rot.per=0.35,
+          scale = c(3,0.5), random.color = FALSE,
+          colors=brewer.pal(8, "Dark2")[factor(cloud$group)])
+
+# wordcloud for unique words in each group
+df=cloud%>%
+  filter(!word %in% word.overlap)
+word.overlap=unique(intersect(df$word[df$group=="bf"],df$word[df$group=="preg"]))
+# ready for word cloud analysis
+wordcloud(words = df$word, freq = df$count, min.freq = 1,
+          max.words=100, random.order=TRUE, rot.per=0.35,
+          scale = c(3,0.5), random.color = FALSE,
+          colors=brewer.pal(8, "Dark2")[factor(df$group)])
+
+
+# example: https://stackoverflow.com/questions/50337874/color-based-on-groups-in-wordcloud-r
+https://www.r-bloggers.com/the-wordcloud2-library/
+
+# creat mock data
+set.seed(1)
+d1 <- data.frame(word=c(stringi::stri_rand_strings(20, 5)), freq=c(sample.int(20,10,100)))
+d1$group <- "group1"
+d1$word <- paste("g1" ,d1$word, sep = "")
+
+d2 <- data.frame(word=c(stringi::stri_rand_strings(20, 5)),freq=c(sample.int(20,10,100)))
+d2$group <- "group2"
+d2$word <- paste("g2" ,d2$word, sep = "")
+
+# merge
+d <- rbind(d1,d2)
+
+# word cloud
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=100, random.order=TRUE, rot.per=0.35,
+          scale = c(3,0.5), random.color = FALSE,
+          colors=brewer.pal(8, "Dark2")[factor(d$group)])
