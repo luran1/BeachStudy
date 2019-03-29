@@ -14,13 +14,10 @@
 # ***************                Directory Variables           *************** #
 # **************************************************************************** #
 
-# Computer
-location="djlemas";location
-
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\",sep="");out.dir
+work.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\");work.dir
+data.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\");data.dir
+out.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\");out.dir
 
 # Set Working Directory
 setwd(work.dir)
@@ -34,11 +31,11 @@ library(tidyr)
 library(dplyr)
 
 # **************************************************************************** #
-# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
+# ***************  freezerExport_BEACH_27Mar19.txt                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="Test_Export.csv";data.file.name
+# Read Data
+data.file.name="freezerExport_BEACH_27Mar19.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
 freezer<- read.csv(data.file.path);
 
@@ -52,13 +49,9 @@ head(dat); str(dat); names(dat)
 
 # what is the ordering of redcap_events
 levels(dat$clinic_visit)
-# 
-# [1] ""              "12_months"     "2_months"      "2_week"        "2_weeks"       "3rd_trimester"
-# [7] "6_months"
 
-# need to identify the 2_week and 2_weeks entries. 
-# 50  187  206 1485 1794 1901
-which(dat$clinic_visit=="2_weeks") # 50  187  206 1485 1794 1901
+# look for "2_weeks" vs "2_week"
+which(dat$clinic_visit=="2_weeks") 
 change=dat%>%
   filter(clinic_visit=="2_weeks")
   print(change$part_id)
@@ -75,30 +68,23 @@ df <- dat %>%
 # check odering of levels
 levels(df$clinic_visit)
 
+# change dates
+df$Clinic.visit.date=as.Date(df$Clinic.visit.date, "%m/%d/%Y")
+
 # drop NA observations
 dat.s=df %>%
-  na.omit() %>%
-  group_by(part_id, clinic_visit) %>%
-  arrange(date) 
+  group_by(Participant_ID, clinic_visit) %>%
+  arrange(Clinic.visit.date) 
 
 # how many tubes per participant?
-dat.s %>%
-  group_by(part_id,clinic_visit) %>%
-  summarize(count=n_distinct(barcode))
+part_count=dat.s %>%
+  group_by(Participant_ID) %>%
+  summarize(count=n_distinct(crc_specimen_barcode))
+  mean(part_count$count) # 23.5 tubes
             
-
-test %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-    mean(bill_sum),
-            min(bill_sum),
-            max(bill_sum))
-
-# how much per visit?
+# how many tubes per sample type
 dat.s %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
+  group_by(Aliquot.Type) %>%
+  summarize(count=n_distinct(crc_specimen_barcode))
 
 
