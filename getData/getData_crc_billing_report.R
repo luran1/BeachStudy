@@ -95,6 +95,65 @@ dat.s %>%
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
 
+
+
+
+
+
+#ggplot2 histgram bar graph
+
+#Adjusting the crc_date_of_service to be date and joining the test and test2 data frames
+test1 <- dat.s%>%
+  mutate(DATE = as.Date(crc_date_of_service, format = "%m/%d/%Y"))%>%
+  mutate(DATE = strftime(DATE,"%m/%Y"))
+
+test2 <- inner_join(test1,test)
+test2 <- arrange(test2, DATE)
+
+
+
+library(ggplot2)
+theme_set(theme_classic())
+
+# distribution of visits each month(histogram)
+h <- ggplot(test2, aes(DATE, bill_sum)) + scale_fill_brewer(palette = "Spectral")
+h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
+                   bins=24,
+                   col="black", 
+                   size=.1) +   # change number of bins
+  labs(title="Clinical visits per Month cost breakdown", 
+       subtitle="from july of 2017-January 2019") +
+  theme(axis.text.x = element_text(angle=70, vjust =.6))
+
+
+
+
+
+# cost of each event as of now(bar chart)
+b <- ggplot(test2,aes(redcap_event_name,bill_sum)) 
+b + geom_bar(stat="identity", width=.5, fill="orange3",
+             size =.1)+ 
+  labs(title="cost total of each redcap event",
+       subtitle="costs are done through billing sum of previous data frame") +
+  theme(axis.text.x = element_text(angle=70, vjust =.6))
+
+
+
+#a box plot of the clincal visits by cost 
+bp <- ggplot(test2, aes(redcap_event_name, crc_amount_due))
+bp + geom_boxplot(varwidth=T, fill="red2") + 
+  labs(title="Box plot", 
+       subtitle="Cost grouped by Clinical Visits",
+       caption="Source: test2",
+       x="clinical visit",
+       y="billing amount") + 
+  theme(axis.text.x = element_text(angle=70, vjust =.6))
+
+
+
+
+
+
 # 3rd  $100
 # 2wk  $160
 # 2mo  $160
@@ -108,4 +167,4 @@ dat.s %>%
 
 # total costs over time from 2016-2019.
 
-table and figure. 
+
