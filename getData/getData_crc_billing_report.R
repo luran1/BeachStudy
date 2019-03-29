@@ -19,9 +19,9 @@
 location="djlemas";location
 
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\tables\\",sep="");out.dir
+work.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
+data.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");data.dir
+out.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\tables\\",sep="");out.dir
 
 # Set Working Directory
 setwd(work.dir)
@@ -33,6 +33,7 @@ list.files()
 
 library(tidyr)
 library(dplyr)
+library(ggplot2)
 
 # **************************************************************************** #
 # ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
@@ -95,11 +96,6 @@ dat.s %>%
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
 
-
-
-
-
-
 #ggplot2 histgram bar graph
 
 #Adjusting the crc_date_of_service to be date and joining the test and test2 data frames
@@ -112,7 +108,6 @@ test2 <- arrange(test2, DATE)
 
 
 
-library(ggplot2)
 theme_set(theme_classic())
 
 # distribution of visits each month(histogram)
@@ -125,10 +120,6 @@ h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
        subtitle="from july of 2017-January 2019") +
   theme(axis.text.x = element_text(angle=70, vjust =.6))
 
-
-
-
-
 # cost of each event as of now(bar chart)
 b <- ggplot(test2,aes(redcap_event_name,bill_sum)) 
 b + geom_bar(stat="identity", width=.5, fill="orange3",
@@ -137,9 +128,7 @@ b + geom_bar(stat="identity", width=.5, fill="orange3",
        subtitle="costs are done through billing sum of previous data frame") +
   theme(axis.text.x = element_text(angle=70, vjust =.6))
 
-
-
-#a box plot of the clincal visits by cost 
+# a box plot of the clincal visits by cost 
 bp <- ggplot(test2, aes(redcap_event_name, crc_amount_due))
 bp + geom_boxplot(varwidth=T, fill="red2") + 
   labs(title="Box plot", 
