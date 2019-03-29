@@ -57,9 +57,11 @@ ds_some_rows_v1 <- redcap_read(
   fields     = desired_fields_v1
   )$data
 
-# chcek data pull
+# check data pull
 str(ds_some_rows_v1)
 ds_some_rows_v1[1]
+
+# how many consented
 
 # ready for some data analysis!
 
