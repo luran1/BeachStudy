@@ -34,15 +34,54 @@ list.files()
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(keyringr)
+library(redcapAPI)
+library(REDCapR)
 
 # **************************************************************************** #
-# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
+# ***************  Pull data from redcap with api                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="BEACH-CRCBilling_DATA_2019-03-23_1057.csv";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);
+# Get Redcap API Token
+# # https://cran.r-project.org/web/packages/keyringr/vignettes/Avoiding_plain_text_passwords_in_R_with_keyringr.html
+credential_label <- "beach_api"
+credential_path <- paste(Sys.getenv("USERPROFILE"), '\\DPAPI\\passwords\\', Sys.info()["nodename"], '\\', credential_label, '.txt', sep="")
+uri <- "https://redcap.ctsi.ufl.edu/redcap/api/"
+beach_token<-decrypt_dpapi_pw(credential_path)
+print(beach_token)
+
+# Create connections
+rcon <- redcapConnection(url=uri, token=beach_token)
+
+# crc variables
+desired_fields_v1=c("test_id","redcap_event_name","redcap_repeat_instrument",
+            "redcap_repeat_instance","crc_date_of_service","crc_service",
+            "crc_unit_cost", "crc_billable_quant", "crc_amount_due")  
+
+# events to retain
+exportEvents(rcon)
+events_to_retain  <- c("third_trimester_arm_1", "two_week_arm_1", "two_month_arm_1", "twelve_month_arm_1")
+
+consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A","BLS007A","BLS008A","BLS010A",
+"BLS011A","BLS012A","BLS013A","BLS014A","BLS015A","BLS016A","BLS019A",
+"BLS020A","BLS023A","BLS025A","BLS026A","BLS027A","BLS028A","BLS029A",
+"BLS030A","BLS032A","BLS033A","BLS034A","BLS035A","BLS036A","BLS037A",
+"BLS038A","BLS039A","BLS040A","BLS041A","BLS043A","BLS044A","BLS045A",
+"BLS048A","BLS049A","BLS050A","BLS051A","BLS052A","BLS053A","BLS054A",
+"BLS055A","BLS056A")
+
+,"BLS057A","BLS058A","BLS059A","BLS060A")
+
+consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A")
+
+# pull data
+ds_some_rows_v1 <- redcap_read(
+  batch_size=150L,
+  records= consent.records,
+  redcap_uri = uri, 
+  token      = beach_token, 
+  fields     = desired_fields_v1
+)$data
 
 # look at data
 dat=billing
