@@ -62,6 +62,18 @@ desired_fields_v1=c("test_id","redcap_event_name","redcap_repeat_instrument",
 exportEvents(rcon)
 events_to_retain  <- c("third_trimester_arm_1", "two_week_arm_1", "two_month_arm_1", "twelve_month_arm_1")
 
+# list of instruments
+exportInstruments(rcon)
+
+# list of events
+exportEvents(rcon)
+
+# list records
+exportRecords(rcon)
+
+# export field names
+exportFieldNames(rcon)
+
 consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A","BLS007A","BLS008A","BLS010A",
 "BLS011A","BLS012A","BLS013A","BLS014A","BLS015A","BLS016A","BLS019A",
 "BLS020A","BLS023A","BLS025A","BLS026A","BLS027A","BLS028A","BLS029A",
@@ -72,11 +84,21 @@ consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A","BLS007A","BLS008A","B
 
 ,"BLS057A","BLS058A","BLS059A","BLS060A")
 
-consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A")
+consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A",
+                  "BLS007A","BLS008A","BLS010A","BLS011A",
+                  "BLS012A","BLS013A","BLS014A","BLS015A",
+                  "BLS016A","BLS019A","BLS020A","BLS023A",
+                  "BLS025A","BLS026A","BLS027A","BLS028A",
+                  "BLS029A","BLS030A","BLS032A","BLS033A",
+                  "BLS034A","BLS035A","BLS036A","BLS037A",
+                  "BLS038A","BLS039A","BLS040A","BLS041A",
+                  "BLS043A","BLS044A","BLS045A","BLS048A",
+                  "BLS049A","BLS050A","BLS051A","BLS052A",
+                  "BLS053A","BLS054A")
 
 # pull data
 ds_some_rows_v1 <- redcap_read(
-  batch_size=150L,
+  batch_size=500L,
   records= consent.records,
   redcap_uri = uri, 
   token      = beach_token, 
