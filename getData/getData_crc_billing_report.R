@@ -74,16 +74,7 @@ exportRecords(rcon)
 # export field names
 exportFieldNames(rcon)
 
-consent.records=c("BLS001A","BLS002A","BLS003A","BLS006A","BLS007A","BLS008A","BLS010A",
-"BLS011A","BLS012A","BLS013A","BLS014A","BLS015A","BLS016A","BLS019A",
-"BLS020A","BLS023A","BLS025A","BLS026A","BLS027A","BLS028A","BLS029A",
-"BLS030A","BLS032A","BLS033A","BLS034A","BLS035A","BLS036A","BLS037A",
-"BLS038A","BLS039A","BLS040A","BLS041A","BLS043A","BLS044A","BLS045A",
-"BLS048A","BLS049A","BLS050A","BLS051A","BLS052A","BLS053A","BLS054A",
-"BLS055A","BLS056A")
-
-,"BLS057A","BLS058A","BLS059A","BLS060A")
-
+# consented records
 consent.records.v1=c("BLS001A","BLS002A","BLS003A","BLS006A",
                   "BLS007A","BLS008A","BLS010A","BLS011A",
                   "BLS012A","BLS013A","BLS014A","BLS015A",
@@ -93,26 +84,14 @@ consent.records.v1=c("BLS001A","BLS002A","BLS003A","BLS006A",
                   "BLS034A","BLS035A","BLS036A","BLS037A",
                   "BLS038A","BLS039A","BLS040A","BLS041A",
                   "BLS043A","BLS044A","BLS045A","BLS048A",
-                  "BLS049A","BLS050A","BLS051A","BLS053A",
-                  "BLS054A","BLS055A","BLS056A",
+                  "BLS049A","BLS050A","BLS051A","BLS052A",
+                  "BLS053A", "BLS054A","BLS055A","BLS056A",
                   "BLS057A","BLS058A","BLS059A","BLS060A")
 
 # pull data
 ds_some_rows_v1 <- redcap_read(
   batch_size=300,
   records= consent.records.v1,
-  redcap_uri = uri, 
-  token      = beach_token, 
-  fields     = desired_fields_v1
-)$data
-
-# second batch of records
-# 
-consent.records.v2=c("BLS052A") # problem record
-# pull data
-ds_some_rows_v2 <- redcap_read(
-  batch_size=250,
-  records= consent.records.v2,
   redcap_uri = uri, 
   token      = beach_token, 
   fields     = desired_fields_v1

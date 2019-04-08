@@ -36,6 +36,19 @@ exportEvents(rcon)
 # list records
 exportRecords(rcon)
 
+# problem record: need to comb through records to identify problems.
+# 
+consent.records.v2=c("2") # problem record
+# pull data
+ds_some_rows_v2 <- redcap_read(
+  batch_size=250,
+  records= consent.records.v2,
+  redcap_uri = uri, 
+  token      = beach_token, 
+  fields     = desired_fields_v1
+)$data
+
+
 desired_records_v1 <- c("BLS001A")
 desired_fields_v1 <- c("test_id", "redcap_event_name", "mom3t_breast_surg")
 
