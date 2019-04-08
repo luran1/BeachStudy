@@ -82,7 +82,7 @@ ds_some_rows_v1 <- redcap_read(
 )$data
 
 # look at data
-dat=billing
+dat=ds_some_rows_v1
 head(dat); str(dat); names(dat)
 
 # **************************************************************************** #
@@ -90,6 +90,7 @@ head(dat); str(dat); names(dat)
 # **************************************************************************** # 
 
 # what is the ordering of redcap_events
+dat$redcap_event_name=as.factor(dat$redcap_event_name)
 levels(dat$redcap_event_name)
 
 # set the order of redcap_events
@@ -103,15 +104,14 @@ df <- dat %>%
                                                "twelve_month_arm_1")))
 # check odering of levels
 levels(df$redcap_event_name)
-
-# set the services ordering
-
+dim(df) # 675 9
 
 # drop NA observations
 dat.s=df %>%
   na.omit() %>%
   group_by(test_id, redcap_event_name) %>%
   arrange(crc_date_of_service) 
+dim(dat.s) # 479 9
 
 # how much per visit/participant?
 test=dat.s %>%
