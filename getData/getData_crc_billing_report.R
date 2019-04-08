@@ -12,22 +12,6 @@
 # Obj: Format data and basic analysis.
 
 # **************************************************************************** #
-# ***************                Directory Variables           *************** #
-# **************************************************************************** #
-
-# Computer
-location="djlemas";location
-
-# Directory Locations
-work.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
-data.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");data.dir
-out.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\tables\\",sep="");out.dir
-
-# Set Working Directory
-setwd(work.dir)
-list.files()
-
-# **************************************************************************** #
 # ***************                Library                       *************** #
 # **************************************************************************** #
 
