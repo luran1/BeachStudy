@@ -21,6 +21,7 @@ library(ggplot2)
 library(keyringr)
 library(redcapAPI)
 library(REDCapR)
+library(lubridate)
 
 # **************************************************************************** #
 # ***************  Pull data from redcap with api                                              
@@ -89,12 +90,32 @@ head(dat); str(dat); names(dat)
 # ***************  General data formatting                                             
 # **************************************************************************** # 
 
+# months formatting
+str(dat)
+dat$crc_date_of_service=as.Date(dat$crc_date_of_service, "%Y-%m-%d")
+dat$month=month(dat$crc_date_of_service)
+dat$year=year(dat$crc_date_of_service)
+dat$month_yr=paste0(dat$month,"_",dat$year)
+dat$month_yr=as.factor(dat$month_yr)
+levels(dat$month_yr)
+
+# set the order of month_yr
+df1<- dat %>% 
+  mutate(month_yr = factor(month_yr, 
+                                    levels = c("6_2017","7_2017","8_2017","9_2017", 
+                                               "10_2017","11_2017","12_2017",
+                                               "1_2018","2_2018","3_2018",
+                                               "4_2018","5_2018","6_2018",
+                                               "7_2018","8_2018","9_2018",
+                                               "10_2018","11_2018","12_2018")))
+levels(df1$month_yr)
+
 # what is the ordering of redcap_events
-dat$redcap_event_name=as.factor(dat$redcap_event_name)
-levels(dat$redcap_event_name)
+df1$redcap_event_name=as.factor(df1$redcap_event_name)
+levels(df1$redcap_event_name)
 
 # set the order of redcap_events
-df <- dat %>% 
+df2 <- df1 %>% 
   mutate(redcap_event_name = factor(redcap_event_name, 
                                     levels = c("baseline_arm_1",
                                                "third_trimester_arm_1", 
@@ -103,11 +124,11 @@ df <- dat %>%
                                                "six_month_arm_1",
                                                "twelve_month_arm_1")))
 # check odering of levels
-levels(df$redcap_event_name)
-dim(df) # 675 9
+levels(df2$redcap_event_name)
+dim(df2) # 675 9
 
 # drop NA observations
-dat.s=df %>%
+dat.s=df2 %>%
   na.omit() %>%
   group_by(test_id, redcap_event_name) %>%
   arrange(crc_date_of_service) 
@@ -115,7 +136,7 @@ dim(dat.s) # 479 9
 
 # how much per visit/participant?
 test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
+  group_by(test_id, redcap_event_name, month_yr) %>%
   summarize(count=n_distinct(crc_service),
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
@@ -127,28 +148,22 @@ test %>%
             max(bill_sum))
 
 # how much per visit?
-dat.s %>%
+test %>%
   group_by(redcap_event_name) %>%
   summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
+            bill_mean=mean(bill_sum, na.rm=T),
+            bill_sum=sum(bill_sum))
 
 #ggplot2 histgram bar graph
-
-#Adjusting the crc_date_of_service to be date and joining the test and test2 data frames
-test1 <- dat.s%>%
-  mutate(DATE = as.Date(crc_date_of_service, format = "%m/%d/%Y"))%>%
-  mutate(DATE = strftime(DATE,"%m/%Y"))
-
-test2 <- inner_join(test1,test)
-test2 <- arrange(test2, DATE)
-
-
-
 theme_set(theme_classic())
+dat.s$crc_service=as.factor(dat.s$crc_service)
+
+g <- ggplot(dat.s, aes(month_yr))
+g +  geom_bar(aes(fill=crc_service))
+
 
 # distribution of visits each month(histogram)
-h <- ggplot(test2, aes(DATE, bill_sum)) + scale_fill_brewer(palette = "Spectral")
+h <- ggplot(dat.s, aes(month_yr, bill_sum)) + scale_fill_brewer(palette = "Spectral")
 h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
                    bins=24,
                    col="black", 
@@ -174,23 +189,5 @@ bp + geom_boxplot(varwidth=T, fill="red2") +
        x="clinical visit",
        y="billing amount") + 
   theme(axis.text.x = element_text(angle=70, vjust =.6))
-
-
-
-
-
-
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
-
-# CRC= $640
-# Inc= $160
-# Part= $800
-
-80*800= $64,000
-
-# total costs over time from 2016-2019.
 
 

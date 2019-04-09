@@ -88,3 +88,7 @@ dat.s %>%
   summarize(count=n_distinct(crc_specimen_barcode))
 
 
+# what about those that have completed 12-month visit
+dat.s %>%
+  mutate(visit_score=)
+  filter(clinic_visit=="12_month")
