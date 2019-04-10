@@ -77,15 +77,17 @@ length(unique(df$Participant_ID)) #85
 # create mom-baby variable
 d1=df%>%
   mutate(part_id=as.character(Participant_ID))
-  d1$mom_baby=ifelse(d1$part_id %in% grepl("A",d1$part_id),"mom",d1$part_id)
-
-  mutate(mom_baby=ifelse(part_id %in% grepl("A",part_id),"mom",part_id))
-
-
-grepl("A",d1$mom_baby)
-
+  d1$mom_baby=ifelse(grepl("A",d1$part_id)==T,"mom",d1$part_id)
+  d1$mom_baby=ifelse(grepl("B$",d1$part_id)==T,"baby",d1$mom_baby)
+  head(d1)
+  d1[,c("Participant_ID","mom_baby","part_id2")]
+  
+# create paired mom-baby
+ d1$part_id_link=gsub("A","",d1$part_id)
+ d1$part_id_link=gsub("B$","",d1$part_id_link)
+ 
 # drop NA observations
-dat.s=df %>%
+dat.s=d1 %>%
   group_by(Participant_ID, clinic_visit) %>%
   arrange(Clinic.visit.date) 
   dim(dat.s) # 1995
@@ -95,15 +97,14 @@ dat.s=df %>%
 # how many visits
   dat.s%>%
     group_by(clinic_visit)%>%
-    summarize(count=n_distinct(Participant_ID))
+    summarize(count=n_distinct(part_id_link))
   table(dat.s$clinic_visit)
-
 
 # how many tubes per participant?
 part_count=dat.s %>%
-  group_by(Participant_ID) %>%
+  group_by(part_id_link) %>%
   summarize(count=n_distinct(crc_specimen_barcode))
-  mean(part_count$count) # 23.5 tubes
+  mean(part_count$count) # 43.4 tubes
             
 # how many tubes per sample type
 dat.s %>%
@@ -112,6 +113,40 @@ dat.s %>%
 
 
 # what about those that have completed 12-month visit
-dat.s %>%
-  mutate(visit_score=)
-  filter(clinic_visit=="12_month")
+table(dat.s$clinic_visit)  #43 sample
+year.complete=dat.s %>%
+  filter(any(clinic_visit %in% "12_months"))
+dim(year.complete)
+length(unique(year.complete$Participant_ID)) # 9 participants (mom-baby)
+length(unique(year.complete$part_id_link)) # 5 participants (mom-baby)
+# why is there a missing mom-baby?
+year.all=dat.s%>%
+filter(part_id_link%in%c("BLS001","BLS002","BLS003","BLS011","BLS016"))
+
+# how many tubes per sample type- AMONG - people completed 12-month visit
+d2=year.all %>%
+  group_by(part_id_link,tube.type)%>%
+  summarize(count=n_distinct(crc_specimen_barcode))
+
+d2%>%
+  group_by(tube.type)%>%
+  summarize(mean=mean(count),
+            min=min(count),
+            max=max(count))
+
+# n= 5 mom-babies
+# need to compute how many samples for 100 mom-baby pairs
+# need to compute number of boxes, racks and shelves.
+# tube.type      mean   min   max
+# <fctr>     <dbl> <dbl> <dbl>
+#   1               1.000000     1     1
+#   2         15ml  1.500000     1     2
+#   3          2ml 16.400000     9    24
+#   4          5ml 22.000000    12    31
+#   5   blood card  2.000000     1     3
+#   6    ez sample  4.200000     3     5
+#   7        other  4.666667     3     6
+#   8  saliva tube  2.000000     2     2
+#   9         tiny  1.600000     1     3
+#   10 vaginal vial  3.000000     2     5
+
