@@ -62,19 +62,42 @@ df <- dat %>%
   mutate(clinic_visit = factor(clinic_visit, 
                                     levels = c("3rd_trimester", 
                                                "2_week", 
-                                               "2_month",
+                                               "2_months",
                                                "6_months",
-                                               "12_month")))
+                                               "12_months")))
 # check odering of levels
 levels(df$clinic_visit)
+table(df$clinic_visit)
 
 # change dates
 df$Clinic.visit.date=as.Date(df$Clinic.visit.date, "%m/%d/%Y")
+dim(df) # 1995
+length(unique(df$Participant_ID)) #85
+
+# create mom-baby variable
+d1=df%>%
+  mutate(part_id=as.character(Participant_ID))
+  d1$mom_baby=ifelse(d1$part_id %in% grepl("A",d1$part_id),"mom",d1$part_id)
+
+  mutate(mom_baby=ifelse(part_id %in% grepl("A",part_id),"mom",part_id))
+
+
+grepl("A",d1$mom_baby)
 
 # drop NA observations
 dat.s=df %>%
   group_by(Participant_ID, clinic_visit) %>%
   arrange(Clinic.visit.date) 
+  dim(dat.s) # 1995
+  length(unique(dat.s$Participant_ID)) #85
+  names(dat.s)
+  
+# how many visits
+  dat.s%>%
+    group_by(clinic_visit)%>%
+    summarize(count=n_distinct(Participant_ID))
+  table(dat.s$clinic_visit)
+
 
 # how many tubes per participant?
 part_count=dat.s %>%
