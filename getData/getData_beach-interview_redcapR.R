@@ -13,6 +13,7 @@
 # **************************************************************************** #
 
 library(keyringr)
+library(tidyverse)
 library(redcapAPI)
 library(REDCapR)
 
