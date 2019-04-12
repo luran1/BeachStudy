@@ -30,11 +30,11 @@ library(tidyr)
 library(dplyr)
 
 # **************************************************************************** #
-# ***************  freezerExport_BEACH_27Mar19.txt                                              
+# ***************  BEACH_DATA_EXPORT_11APR19.txt                                              
 # **************************************************************************** # 
 
 # Read Data
-data.file.name="freezerExport_BEACH_27Mar19.csv";data.file.name
+data.file.name="BEACH_DATA_EXPORT_11APR19.csv";data.file.name
 data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
 freezer<- read.csv(data.file.path);
 
@@ -73,23 +73,26 @@ df$Clinic.visit.date=as.Date(df$Clinic.visit.date, "%m/%d/%Y")
 dim(df) # 1995
 length(unique(df$Participant_ID)) #85
 
+names(df)
+df$Mom_Baby
+
 # create mom-baby variable
-d1=df%>%
-  mutate(part_id=as.character(Participant_ID))
-  d1$mom_baby=ifelse(grepl("A",d1$part_id)==T,"mom",d1$part_id)
-  d1$mom_baby=ifelse(grepl("B$",d1$part_id)==T,"baby",d1$mom_baby)
-  head(d1)
-  d1[,c("Participant_ID","mom_baby","part_id2")]
+# d1=df%>%
+#   mutate(part_id=as.character(Participant_ID))
+#   d1$mom_baby=ifelse(grepl("A",d1$part_id)==T,"mom",d1$part_id)
+#   d1$mom_baby=ifelse(grepl("B$",d1$part_id)==T,"baby",d1$mom_baby)
+#   head(d1)
+#   d1[,c("Participant_ID","mom_baby","part_id2")]
   
 # create paired mom-baby
- d1$part_id_link=gsub("A","",d1$part_id)
- d1$part_id_link=gsub("B$","",d1$part_id_link)
+df$part_id_link=gsub("A","",df$Participant_ID)
+df$part_id_link=gsub("B$","",df$part_id_link)
  
 # drop NA observations
-dat.s=d1 %>%
+dat.s=df %>%
   group_by(Participant_ID, clinic_visit) %>%
   arrange(Clinic.visit.date) 
-  dim(dat.s) # 1995
+  dim(dat.s) # 2021
   length(unique(dat.s$Participant_ID)) #85
   names(dat.s)
   
@@ -105,11 +108,15 @@ part_count=dat.s %>%
   summarize(count=n_distinct(crc_specimen_barcode))
   mean(part_count$count) # 43.4 tubes
             
-# how many tubes per sample type
+# how many sample types
 dat.s %>%
   group_by(Aliquot.Type) %>%
   summarize(count=n_distinct(crc_specimen_barcode))
 
+# how many tubes per sample type
+dat.s %>%
+  group_by(Freezer.Section) %>%
+  summarize(count=n_distinct(crc_specimen_barcode))
 
 # what about those that have completed 12-month visit
 table(dat.s$clinic_visit)  #43 sample
@@ -124,11 +131,11 @@ filter(part_id_link%in%c("BLS001","BLS002","BLS003","BLS011","BLS016"))
 
 # how many tubes per sample type- AMONG - people completed 12-month visit
 d2=year.all %>%
-  group_by(part_id_link,tube.type)%>%
+  group_by(part_id_link,Freezer.Section)%>%
   summarize(count=n_distinct(crc_specimen_barcode))
 
 d2%>%
-  group_by(tube.type)%>%
+  group_by(Freezer.Section)%>%
   summarize(mean=mean(count),
             min=min(count),
             max=max(count))
@@ -136,16 +143,12 @@ d2%>%
 # n= 5 mom-babies
 # need to compute how many samples for 100 mom-baby pairs
 # need to compute number of boxes, racks and shelves.
-# tube.type      mean   min   max
-# <fctr>     <dbl> <dbl> <dbl>
-#   1               1.000000     1     1
-#   2         15ml  1.500000     1     2
-#   3          2ml 16.400000     9    24
-#   4          5ml 22.000000    12    31
-#   5   blood card  2.000000     1     3
-#   6    ez sample  4.200000     3     5
-#   7        other  4.666667     3     6
-#   8  saliva tube  2.000000     2     2
-#   9         tiny  1.600000     1     3
-#   10 vaginal vial  3.000000     2     5
+# Freezer.Section   mean   min   max
+# <fct>            <dbl> <dbl> <dbl>
+# 1 2ml Box 9*9      18       10    25
+# 2 5ml Box 7*7      22       12    31
+# 3 Blood Card Box    2        1     3
+# 4 EZ Sampler Box    4.2      3     5
+# 5 Mixed Box         6.33     3     9
+# 6 Vaginal Swab Box  3.2      2     5
 
