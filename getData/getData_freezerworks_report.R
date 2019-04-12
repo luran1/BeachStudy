@@ -27,6 +27,7 @@ list.files()
 # **************************************************************************** #
 
 library(tidyr)
+library(tidyverse)
 library(dplyr)
 
 # **************************************************************************** #
@@ -168,6 +169,35 @@ redcap=dat.s %>%
          biosample_aliquot_numb=Aliquot.Number)%>%
   mutate(redcap_event_name=NA,
          redcap_repeat_instrument="biological_specimen_collection")%>%
-  select(test_id,redcap_event_name,redcap_repeat_instrument,everything())
-  names() 
+  select(test_id,redcap_event_name,redcap_repeat_instrument,everything())%>%
+  mutate(redcap_event_name=case_when(biosample_study_visit=="3rd_trimester" ~ "third_trimester_arm_1",
+                                     biosample_study_visit=="2_week" ~ "two_week_arm_1",
+                                     biosample_study_visit=="2_months" ~ "two_month_arm_1",
+                                     biosample_study_visit=="6_months" ~ "six_month_arm_1",
+                                     biosample_study_visit=="12_months" ~ "twelve_month_arm_1"))%>%
+  mutate(redcap_event_name = factor(redcap_event_name, 
+                               levels = c("third_trimester_arm_1", 
+                                          "two_week_arm_1", 
+                                          "two_month_arm_1",
+                                          "six_month_arm_1",
+                                          "twelve_month_arm_1")))%>%
+  mutate(biosample_collection_date=format(biosample_collection_date, "%m/%d/%Y"))%>%
+
+  # replace NA with blanks
+df <- sapply(redcap, as.character)
+df[is.na(df)] <- " "
+df1=as.data.frame(df)
+
+# checks
+unique(df1$redcap_event_name)
+table(df1$redcap_event_name)
+table(df1$biosample_study_visit)
+
+# export test data: BLS001A
+redcap.bls001=df1%>%
+  filter(test_id=="BLS001A")%>%
+write_csv(path =paste0(work.dir,"redcap.bls001.csv",na = ""))
+
+# need redcap instance
+
 
