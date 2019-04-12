@@ -46,16 +46,25 @@ head(dat); str(dat); names(dat)
 # ***************  General data formatting                                             
 # **************************************************************************** # 
 
+names(dat)
+
 # what is the ordering of redcap_events
 levels(dat$clinic_visit)
+unique(as.character(dat$Aliquot.Type))
+unique(as.character(dat$tube.type))
+
 
 # look for "2_weeks" vs "2_week"
 which(dat$clinic_visit=="2_weeks") 
 change=dat%>%
   filter(clinic_visit=="2_weeks")
-  print(change$part_id)
-  
+  print(change$Participant_ID)
 
+# which "3rd Trimester" vs "3rd_trimester"  # BLS059A needs to be changed
+  change=dat%>%
+    filter(clinic_visit=="3rd Trimester")
+  print(change$Participant_ID)
+  
 # set the order of redcap_events
 df <- dat %>% 
   mutate(clinic_visit = factor(clinic_visit, 
@@ -76,14 +85,6 @@ length(unique(df$Participant_ID)) #85
 names(df)
 df$Mom_Baby
 
-# create mom-baby variable
-# d1=df%>%
-#   mutate(part_id=as.character(Participant_ID))
-#   d1$mom_baby=ifelse(grepl("A",d1$part_id)==T,"mom",d1$part_id)
-#   d1$mom_baby=ifelse(grepl("B$",d1$part_id)==T,"baby",d1$mom_baby)
-#   head(d1)
-#   d1[,c("Participant_ID","mom_baby","part_id2")]
-  
 # create paired mom-baby
 df$part_id_link=gsub("A","",df$Participant_ID)
 df$part_id_link=gsub("B$","",df$part_id_link)
@@ -151,4 +152,22 @@ d2%>%
 # 4 EZ Sampler Box    4.2      3     5
 # 5 Mixed Box         6.33     3     9
 # 6 Vaginal Swab Box  3.2      2     5
+
+# output data for import to redcap
+redcap=dat.s %>%
+  select(Participant_ID,clinic_visit,Clinic.visit.date,Mom_Baby,Aliquot.Type,crc_specimen_barcode,crc_specimen_number,
+         tube.type,Aliquot.Number) %>%
+  rename(test_id=Participant_ID, 
+         biosample_study_visit=clinic_visit,
+         biosample_collection_date=Clinic.visit.date,
+         biosample_mom_baby=Mom_Baby,
+         biosample_aliquot_type=Aliquot.Type,
+         crc_specimen_barcode=crc_specimen_barcode,
+         crc_specimen_number=crc_specimen_number,
+         biosample_tube_type=tube.type,
+         biosample_aliquot_numb=Aliquot.Number)%>%
+  mutate(redcap_event_name=NA,
+         redcap_repeat_instrument="biological_specimen_collection")%>%
+  select(test_id,redcap_event_name,redcap_repeat_instrument,everything())
+  names() 
 
