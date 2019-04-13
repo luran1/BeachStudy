@@ -154,18 +154,6 @@ d2%>%
             min=min(count),
             max=max(count))
 
-# n= 5 mom-babies
-# need to compute how many samples for 100 mom-baby pairs
-# need to compute number of boxes, racks and shelves.
-# Freezer.Section   mean   min   max
-# <fct>            <dbl> <dbl> <dbl>
-# 1 2ml Box 9*9      18       10    25
-# 2 5ml Box 7*7      22       12    31
-# 3 Blood Card Box    2        1     3
-# 4 EZ Sampler Box    4.2      3     5
-# 5 Mixed Box         6.33     3     9
-# 6 Vaginal Swab Box  3.2      2     5
-
 # output data for import to redcap
 redcap=dat.s %>%
   select(Participant_ID,clinic_visit,Clinic.visit.date,Mom_Baby,Aliquot.Type,crc_specimen_barcode,crc_specimen_number,
