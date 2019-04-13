@@ -56,7 +56,6 @@ unique(as.character(dat$tube.type))
 table(dat$tube.type)
 table(dat$Freezer.Section)
 
-
 # look for "2_weeks" vs "2_week"
 which(dat$clinic_visit=="2_weeks") 
 change=dat%>%
@@ -88,7 +87,6 @@ table(df$tube.type)
 # freezer section
 levels(dat$Freezer.Section)
 table(dat$Freezer.Section)
-
 
 # change dates
 df$Clinic.visit.date=as.Date(df$Clinic.visit.date, "%m/%d/%Y")
@@ -186,40 +184,45 @@ redcap=dat.s %>%
                                           "twelve_month_arm_1")))%>%
   mutate(biosample_collection_date=format(biosample_collection_date, "%m/%d/%Y"))
 
-# clinic_visit
-1, 3rd_trimester
-2, 2_week
-3, 2_months
-4, 6_months
-5, 12_months
+# names
+names(redcap)
 
-# mom-baby
-0, mom
-1, baby
+test=redcap %>%
+  mutate(test=recode(biosample_study_visit, 
+                     "3rd_trimester"="1", 
+                     "2_week"="2",
+                     "2_months"="3",
+                     "6_months"="4",
+                     "12_months"="5"),
+         test2=recode(biosample_mom_baby,
+                      "mom"="0",
+                      "baby"="1"),
+         test3=recode(biosample_aliquot_type,
+                      "plasma"="1",
+                      "urine"="2",
+                      "saliva"="3",
+                      "milk- skim"="4",
+                      "milk- whole"="5",
+                      "milk-lipid"="6",
+                      "stool"="7",
+                      "vaginal"="8",
+                      "blood"="9",
+                      "formula"="10"),
+         test4=recode(biosample_tube_type,
+                      "2ml"="1",
+                      "ez sample"="2",
+                      "vaginal vial"="3",
+                      "5ml"="4",
+                      "tiny"="5",
+                      "blood card"="6",
+                      "other"="7",
+                      "15ml"="8",
+                      "saliva tube"="9",
+                      "50ml"="10"))
 
-# aliquot type
-1, plasma
-2, urine
-3, saliva
-4, milk- skim
-5, milk- whole
-6, milk-lipid
-7, stool
-8, vaginal
-9, blood
-10, formula
+test$test
 
-# tube type
-1, 2ml
-2, ez sample
-3, vaginal vial
-4, 5ml
-5, tiny
-6, blood card
-7, other
-8, 15ml
-9, saliva tube
-10, 50ml
+levels(redcap$biosample_study_visit)
 
 # replace NA with blanks
 df <- sapply(redcap, as.character)
