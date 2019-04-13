@@ -169,7 +169,10 @@ redcap=dat.s %>%
          biosample_aliquot_numb=Aliquot.Number)%>%
   mutate(redcap_event_name=NA,
          redcap_repeat_instrument="biological_specimen_collection")%>%
-  select(test_id,redcap_event_name,redcap_repeat_instrument,everything())%>%
+  arrange(test_id,biosample_study_visit,biosample_collection_date,biosample_aliquot_type)%>%
+  group_by(test_id,biosample_study_visit) %>% 
+  mutate(redcap_repeat_instance=row_number())%>%
+  select(test_id,redcap_event_name,redcap_repeat_instrument,redcap_repeat_instance,everything())%>%
   mutate(redcap_event_name=case_when(biosample_study_visit=="3rd_trimester" ~ "third_trimester_arm_1",
                                      biosample_study_visit=="2_week" ~ "two_week_arm_1",
                                      biosample_study_visit=="2_months" ~ "two_month_arm_1",
@@ -181,9 +184,44 @@ redcap=dat.s %>%
                                           "two_month_arm_1",
                                           "six_month_arm_1",
                                           "twelve_month_arm_1")))%>%
-  mutate(biosample_collection_date=format(biosample_collection_date, "%m/%d/%Y"))%>%
+  mutate(biosample_collection_date=format(biosample_collection_date, "%m/%d/%Y"))
 
-  # replace NA with blanks
+# clinic_visit
+1, 3rd_trimester
+2, 2_week
+3, 2_months
+4, 6_months
+5, 12_months
+
+# mom-baby
+0, mom
+1, baby
+
+# aliquot type
+1, plasma
+2, urine
+3, saliva
+4, milk- skim
+5, milk- whole
+6, milk-lipid
+7, stool
+8, vaginal
+9, blood
+10, formula
+
+# tube type
+1, 2ml
+2, ez sample
+3, vaginal vial
+4, 5ml
+5, tiny
+6, blood card
+7, other
+8, 15ml
+9, saliva tube
+10, 50ml
+
+# replace NA with blanks
 df <- sapply(redcap, as.character)
 df[is.na(df)] <- " "
 df1=as.data.frame(df)
