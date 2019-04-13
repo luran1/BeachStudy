@@ -53,6 +53,8 @@ names(dat)
 levels(dat$clinic_visit)
 unique(as.character(dat$Aliquot.Type))
 unique(as.character(dat$tube.type))
+table(dat$tube.type)
+table(dat$Freezer.Section)
 
 
 # look for "2_weeks" vs "2_week"
@@ -74,13 +76,23 @@ df <- dat %>%
                                                "2_months",
                                                "6_months",
                                                "12_months")))
-# check odering of levels
+# Factored Variables: 
+# clinic visit
 levels(df$clinic_visit)
 table(df$clinic_visit)
 
+# tube type
+levels(df$tube.type)
+table(df$tube.type)
+
+# freezer section
+levels(dat$Freezer.Section)
+table(dat$Freezer.Section)
+
+
 # change dates
 df$Clinic.visit.date=as.Date(df$Clinic.visit.date, "%m/%d/%Y")
-dim(df) # 1995
+dim(df) # 2021
 length(unique(df$Participant_ID)) #85
 
 names(df)
@@ -108,7 +120,7 @@ dat.s=df %>%
 part_count=dat.s %>%
   group_by(part_id_link) %>%
   summarize(count=n_distinct(crc_specimen_barcode))
-  mean(part_count$count) # 43.4 tubes
+  mean(part_count$count) # 43.9 tubes
             
 # how many sample types
 dat.s %>%
