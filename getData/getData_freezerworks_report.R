@@ -168,7 +168,7 @@ redcap=dat.s %>%
   mutate(redcap_event_name=NA,
          redcap_repeat_instrument="biological_specimen_collection")%>%
   arrange(test_id,biosample_study_visit,biosample_collection_date,biosample_aliquot_type)%>%
-  group_by(test_id,biosample_study_visit) %>% 
+  #group_by(test_id,biosample_study_visit) %>% 
   mutate(redcap_repeat_instance=row_number())%>%
   select(test_id,redcap_event_name,redcap_repeat_instrument,redcap_repeat_instance,everything())%>%
   mutate(redcap_event_name=case_when(biosample_study_visit=="3rd_trimester" ~ "third_trimester_arm_1",
@@ -182,22 +182,18 @@ redcap=dat.s %>%
                                           "two_month_arm_1",
                                           "six_month_arm_1",
                                           "twelve_month_arm_1")))%>%
-  mutate(biosample_collection_date=format(biosample_collection_date, "%m/%d/%Y"))
-
-# names
-names(redcap)
-
-test=redcap %>%
-  mutate(test=recode(biosample_study_visit, 
+  mutate(biosample_collection_date=format(biosample_collection_date, "%m/%d/%Y"))%>%
+  ungroup()%>%
+  mutate(biosample_study_visit=recode(biosample_study_visit, 
                      "3rd_trimester"="1", 
                      "2_week"="2",
                      "2_months"="3",
                      "6_months"="4",
                      "12_months"="5"),
-         test2=recode(biosample_mom_baby,
+         biosample_mom_baby=recode(biosample_mom_baby,
                       "mom"="0",
                       "baby"="1"),
-         test3=recode(biosample_aliquot_type,
+         biosample_aliquot_type=recode(biosample_aliquot_type,
                       "plasma"="1",
                       "urine"="2",
                       "saliva"="3",
@@ -208,7 +204,7 @@ test=redcap %>%
                       "vaginal"="8",
                       "blood"="9",
                       "formula"="10"),
-         test4=recode(biosample_tube_type,
+         biosample_tube_type=recode(biosample_tube_type,
                       "2ml"="1",
                       "ez sample"="2",
                       "vaginal vial"="3",
@@ -219,24 +215,9 @@ test=redcap %>%
                       "15ml"="8",
                       "saliva tube"="9",
                       "50ml"="10"))
-
-# test the data recode
-names(test)
-# biosample_study_visit: CHECK COMPLETE
-table(test$biosample_study_visit)
-table(test$test)
-
-# biosample_mom_baby: CHECK COMPLETE
-table(test$biosample_mom_baby)
-table(test$test2)
-
-# biosample_aliquot_type: CHECK COMPLETE
-table(test$biosample_aliquot_type)
-table(test$test3)
-
-# biosample_tube_type: CHECK COMPLETE
-table(test$biosample_tube_type)
-table(test$test4)
+# check data
+names(redcap)
+dim(redcap)
 
 # replace NA with blanks
 df <- sapply(redcap, as.character)
@@ -253,6 +234,14 @@ redcap.bls001=df1%>%
   filter(test_id=="BLS001A")%>%
 write_csv(path =paste0(work.dir,"redcap.bls001.csv",na = ""))
 
-# need redcap instance
+# need to create a report with data that needs to be followed up.
+
+# redcap_event_name
+# crc_specimen_number
+# crc_specimen_barcode
+# biosample_collection_date
+
+
+ 
 
 
