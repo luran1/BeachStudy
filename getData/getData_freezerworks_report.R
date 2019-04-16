@@ -235,6 +235,7 @@ redcap.bls001=df1%>%
 write_csv(path =paste0(work.dir,"redcap.bls001.csv",na = ""))
 
 # need to create a report with data that needs to be followed up.
+# output as html.
 
 # redcap_event_name
 # crc_specimen_number
