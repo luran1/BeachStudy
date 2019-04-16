@@ -220,9 +220,23 @@ test=redcap %>%
                       "saliva tube"="9",
                       "50ml"="10"))
 
-test$test
+# test the data recode
+names(test)
+# biosample_study_visit: CHECK COMPLETE
+table(test$biosample_study_visit)
+table(test$test)
 
-levels(redcap$biosample_study_visit)
+# biosample_mom_baby: CHECK COMPLETE
+table(test$biosample_mom_baby)
+table(test$test2)
+
+# biosample_aliquot_type: CHECK COMPLETE
+table(test$biosample_aliquot_type)
+table(test$test3)
+
+# biosample_tube_type: CHECK COMPLETE
+table(test$biosample_tube_type)
+table(test$test4)
 
 # replace NA with blanks
 df <- sapply(redcap, as.character)
