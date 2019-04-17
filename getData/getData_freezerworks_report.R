@@ -1,26 +1,22 @@
-##-------------- 
-# **************************************************************************** #
-# ***************                Project Overview              *************** #
-# **************************************************************************** #
 
-# Author:      Dominick Lemas 
-# Date:        March 23, 2019 
-# IRB:
-# Description: Data management for freezerworks aliquot data. 
-# Data: C:\Users\djlemas\Dropbox (UFL)\02_Projects\FREEZERWORKS\BEACH_Study\Export
-# Obj: Format data and basic analysis.
+#' ---
+#' title: "Data management for freezerworks aliquot data"
+#' author: "Dominick Lemas"
+#' date: "March 23, 2019"
+#' ---
+
 
 # **************************************************************************** #
 # ***************                Directory Variables           *************** #
 # **************************************************************************** #
 
-# Directory Locations
 work.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\");work.dir
 data.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\FREEZERWORKS\\BEACH_Study\\Export\\");data.dir
 
 # Set Working Directory
 setwd(work.dir)
 list.files()
+
 
 # **************************************************************************** #
 # ***************                Library                       *************** #
@@ -233,6 +229,8 @@ table(df1$biosample_study_visit)
 redcap.bls001=df1%>%
   filter(test_id=="BLS001A")%>%
 write_csv(path =paste0(work.dir,"redcap.bls001.csv",na = ""))
+
+# 
 
 # need to create a report with data that needs to be followed up.
 # output as html.
