@@ -99,24 +99,81 @@ dat.s %>%
 
 
 
+# My working code 
 
-#ggplot2 histgram bar graph
-
-#Adjusting the crc_date_of_service to be date and joining the test and test2 data frames
-test1 <- dat.s%>%
-  mutate(DATE = as.Date(crc_date_of_service, format = "%m/%d/%Y"))%>%
-  mutate(DATE = strftime(DATE,"%m/%Y"))
-
-test2 <- inner_join(test1,test)
-test2 <- arrange(test2, DATE)
-
-
-
+library(tidyr)
+library(dplyr)
 library(ggplot2)
+
+# Reading in the RedCap data excel sheet
+df <- read.table("TheBreastfeedingAndE-CRCBilling_DATA_2019-04-15_1133.txt", header = TRUE)
+
+
+
+# drop NA observations
+dat.s=df %>%
+  na.omit() %>%
+  group_by(test_id, redcap_event_name) %>%
+  arrange(crc_date_of_service) 
+
+# how much per visit/participant?
+test=dat.s %>%
+  group_by(test_id, redcap_event_name) %>%
+  summarize(count=n_distinct(crc_service),
+            bill_mean=mean(crc_amount_due, na.rm=T),
+            bill_sum=sum(crc_amount_due))
+
+test %>%
+  group_by(redcap_event_name) %>%
+  summarize(count=n_distinct(test_id),
+            mean(bill_sum),
+            min(bill_sum),
+            max(bill_sum))
+
+
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+
+# Reading in the RedCap data excel sheet
+df <- read.table("TheBreastfeedingAndE-CRCBilling_DATA_2019-04-15_1133.txt", header = TRUE)
+
+
+
+# drop NA observations
+dat.s=df %>%
+  na.omit() %>%
+  group_by(test_id, redcap_event_name) %>%
+  arrange(crc_date_of_service) 
+
+# how much per visit/participant?
+test=dat.s %>%
+  group_by(test_id, redcap_event_name) %>%
+  summarize(count=n_distinct(crc_service),
+            bill_mean=mean(crc_amount_due, na.rm=T),
+            bill_sum=sum(crc_amount_due))
+
+test %>%
+  group_by(redcap_event_name) %>%
+  summarize(count=n_distinct(test_id),
+            mean(bill_sum),
+            min(bill_sum),
+            max(bill_sum))
+
+
+#arranging the data frame by date of service and organizing by month and year
+test1 <- dat.s%>%
+  mutate(crc_date_of_service = as.Date(crc_date_of_service, format = "%m/%d/%Y"))%>%
+  mutate(crc_date_of_service = strftime(crc_date_of_service, "%y-%m"))%>%
+  arrange(crc_date_of_service)
+
+
+#setting the theme for the graphs   
 theme_set(theme_classic())
 
-# distribution of visits each month(histogram)
-h <- ggplot(test2, aes(DATE, bill_sum)) + scale_fill_brewer(palette = "Spectral")
+# distribution of visits each month(histogram) vs cost
+h <- ggplot(test1, aes(crc_date_of_service, crc_amount_due)) + scale_fill_brewer(palette = "Spectral")
 h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
                    bins=24,
                    col="black", 
@@ -130,7 +187,7 @@ h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
 
 
 # cost of each event as of now(bar chart)
-b <- ggplot(test2,aes(redcap_event_name,bill_sum)) 
+b <- ggplot(test1,aes(redcap_event_name,crc_amount_due)) 
 b + geom_bar(stat="identity", width=.5, fill="orange3",
              size =.1)+ 
   labs(title="cost total of each redcap event",
@@ -138,16 +195,6 @@ b + geom_bar(stat="identity", width=.5, fill="orange3",
   theme(axis.text.x = element_text(angle=70, vjust =.6))
 
 
-
-#a box plot of the clincal visits by cost 
-bp <- ggplot(test2, aes(redcap_event_name, crc_amount_due))
-bp + geom_boxplot(varwidth=T, fill="red2") + 
-  labs(title="Box plot", 
-       subtitle="Cost grouped by Clinical Visits",
-       caption="Source: test2",
-       x="clinical visit",
-       y="billing amount") + 
-  theme(axis.text.x = element_text(angle=70, vjust =.6))
 
 
 
