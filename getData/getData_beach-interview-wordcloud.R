@@ -14,13 +14,10 @@
 # ***************                Directory Variables           *************** #
 # **************************************************************************** #
 
-# Computer
-location="djlemas";location
-
 # Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\",sep="");out.dir
+work.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\");work.dir
+data.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\");data.dir
+out.dir=paste0(Sys.getenv("USERPROFILE"),"\\Dropbox (UFL)\\02_Projects\\BEACH_INTERVIEW\\03_Nvivo_Analysis\\wordcloud\\");out.dir
 
 # Set Working Directory
 setwd(work.dir)
@@ -29,82 +26,128 @@ list.files()
 # **************************************************************************** #
 # ***************                Library                       *************** #
 # **************************************************************************** #
+# install
+# install.packages(c("tm","SnowballC","wordcloud","RColorBrewer"))  
 
+# Load
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
 library(tidyr)
 library(dplyr)
+library(readxl)
+library(wordcloud2)
 
 # **************************************************************************** #
-# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
+# ***************  BIS Participants-WFQ.xlsx                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="BEACH-CRCBilling_DATA_2019-03-23_1057.csv";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);
+# file parameters
+n_max=10000
+bf.file.name="BIS Participants-WFQ.xlsx";bf.file.name
 
-# look at data
-dat=billing
-head(dat); str(dat); names(dat)
+
+#Read Data
+bf.group=read_xlsx(paste0(data.dir,bf.file.name), sheet = "Sheet1", range = NULL, col_names = TRUE,
+                      col_types = NULL, na = "NA", trim_ws = TRUE, skip = 0, n_max = Inf,
+                      guess_max = min(1000, n_max));bf.group
+
+
+# **************************************************************************** #
+# ***************  PRG Participants-WFQ.xlsx                                              
+# **************************************************************************** # 
+
+# file parameters
+n_max=10000
+prego.file.name="PRG Participants-WFQ.xlsx";prego.file.name
+
+
+#Read Data
+prego.group=read_xlsx(paste0(data.dir,prego.file.name), sheet = "Sheet1", range = NULL, col_names = TRUE,
+                   col_types = NULL, na = "NA", trim_ws = TRUE, skip = 0, n_max = Inf,
+                   guess_max = min(1000, n_max));prego.group
+
 
 # **************************************************************************** #
 # ***************  General data formatting                                             
 # **************************************************************************** # 
 
+# breastfeeding group
+bf.group.trim=bf.group%>%
+  select(Word,Count)%>%
+  rename_all(tolower)
+  bf.group.trim$group=c("bf")
+  bf.group.trim$color=c("blue")
+
+# pregnant group
+preg.group.trim=prego.group%>%
+    select(Word,Count)%>%
+    rename_all(tolower)
+   preg.group.trim$group=c("preg")
+   preg.group.trim$color=c("orange")
+   
+  
+# merge data
+cloud=bind_rows(list(bf.group.trim, preg.group.trim))
+
 # what is the ordering of redcap_events
-levels(dat$redcap_event_name)
+cloud$group=as.factor(cloud$group)
 
-# set the order of redcap_events
-df <- dat %>% 
-  mutate(redcap_event_name = factor(redcap_event_name, 
-                                    levels = c("baseline_arm_1",
-                                               "third_trimester_arm_1", 
-                                               "two_week_arm_1", 
-                                               "two_month_arm_1",
-                                               "six_month_arm_1",
-                                               "twelve_month_arm_1")))
-# check odering of levels
-levels(df$redcap_event_name)
+# how many words overlap in both groups
+length(intersect(cloud$word[cloud$group=="bf"],cloud$word[cloud$group=="preg"]))
+word.overlap=unique(intersect(cloud$word[cloud$group=="bf"],cloud$word[cloud$group=="preg"]))
 
-# set the services ordering
+#how many words total
+length(unique(cloud$word))
+
+# ready for word cloud analysis
+wordcloud(words = cloud$word, freq = cloud$count, min.freq = 1,
+          max.words=100, random.order=TRUE, rot.per=0.35,
+          scale = c(3,0.5), random.color = FALSE,
+          colors=brewer.pal(8, "Dark2")[factor(cloud$group)])
+
+# wordcloud for unique words in each group
+df=cloud%>%
+  filter(!word %in% word.overlap)
+word.overlap=unique(intersect(df$word[df$group=="bf"],df$word[df$group=="preg"]))
+# ready for word cloud analysis
+wordcloud(words = df$word, freq = df$count, min.freq = 1,
+          max.words=100, random.order=TRUE, rot.per=0.35,
+          scale = c(3,0.5), random.color = FALSE,
+          colors=brewer.pal(8, "Dark2")[factor(df$group)])
+
+# wordcloud2
+head(demoFreq)
+wordcloud2(demoFreq, size=1.6)
+wordcloud2(cloud, size=0.5,color=cloud$color)
+letterCloud(cloud, word = "R", wordSize = 1)
+wordcloud2(cloud, size = 0.5, minRotation = -pi/2, maxRotation = -pi/2, color=cloud$color)
 
 
-# drop NA observations
-dat.s=df %>%
-  na.omit() %>%
-  group_by(test_id, redcap_event_name) %>%
-  arrange(crc_date_of_service) 
 
-# how much per visit/participant?
-test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
-  summarize(count=n_distinct(crc_service),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
-test %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-    mean(bill_sum),
-            min(bill_sum),
-            max(bill_sum))
+# example: https://stackoverflow.com/questions/50337874/color-based-on-groups-in-wordcloud-r
+https://www.r-bloggers.com/the-wordcloud2-library/
 
-# how much per visit?
-dat.s %>%
-  group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
-            bill_mean=mean(crc_amount_due, na.rm=T),
-            bill_sum=sum(crc_amount_due))
+# creat mock data
+set.seed(1)
+d1 <- data.frame(word=c(stringi::stri_rand_strings(20, 5)), freq=c(sample.int(20,10,100)))
+d1$group <- "group1"
+d1$word <- paste("g1" ,d1$word, sep = "")
 
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
+d2 <- data.frame(word=c(stringi::stri_rand_strings(20, 5)),freq=c(sample.int(20,10,100)))
+d2$group <- "group2"
+d2$word <- paste("g2" ,d2$word, sep = "")
 
-# CRC= $640
-# Inc= $160
-# Part= $800
+# merge
+d <- rbind(d1,d2)
 
-80*800= $64,000
+# word cloud
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=100, random.order=TRUE, rot.per=0.35,
+          scale = c(3,0.5), random.color = FALSE,
+          colors=brewer.pal(8, "Dark2")[factor(d$group)])
 
-# total costs over time from 2016-2019.
 
-table and figure. 
+

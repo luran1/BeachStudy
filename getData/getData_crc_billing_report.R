@@ -12,50 +12,110 @@
 # Obj: Format data and basic analysis.
 
 # **************************************************************************** #
-# ***************                Directory Variables           *************** #
-# **************************************************************************** #
-
-# Computer
-location="djlemas";location
-
-# Directory Locations
-work.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");work.dir
-data.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\ALL_DATA\\",sep="");data.dir
-out.dir=paste("C:\\Users\\",location,"\\Dropbox (UFL)\\02_Projects\\BEACH_STUDY\\RedCap\\tables\\",sep="");out.dir
-
-# Set Working Directory
-setwd(work.dir)
-list.files()
-
-# **************************************************************************** #
 # ***************                Library                       *************** #
 # **************************************************************************** #
 
 library(tidyr)
 library(dplyr)
+library(ggplot2)
+library(keyringr)
+library(redcapAPI)
+library(REDCapR)
+library(lubridate)
 
 # **************************************************************************** #
-# ***************  BEACH-CRCBilling_DATA_2019-03-23_1057.csv                                              
+# ***************  Pull data from redcap with api                                              
 # **************************************************************************** # 
 
-#Read Data
-data.file.name="BEACH-CRCBilling_DATA_2019-03-23_1057.csv";data.file.name
-data.file.path=paste0(data.dir,"\\",data.file.name);data.file.path
-billing<- read.csv(data.file.path);
+# Get Redcap API Token
+# # https://cran.r-project.org/web/packages/keyringr/vignettes/Avoiding_plain_text_passwords_in_R_with_keyringr.html
+credential_label <- "beach_api"
+credential_path <- paste(Sys.getenv("USERPROFILE"), '\\DPAPI\\passwords\\', Sys.info()["nodename"], '\\', credential_label, '.txt', sep="")
+uri <- "https://redcap.ctsi.ufl.edu/redcap/api/"
+beach_token<-decrypt_dpapi_pw(credential_path)
+print(beach_token)
+
+# Create connections
+rcon <- redcapConnection(url=uri, token=beach_token)
+
+# crc variables
+desired_fields_v1=c("test_id","redcap_event_name","redcap_repeat_instrument",
+            "redcap_repeat_instance","crc_date_of_service","crc_service",
+            "crc_unit_cost", "crc_billable_quant", "crc_amount_due")  
+
+# events to retain
+exportEvents(rcon)
+events_to_retain  <- c("third_trimester_arm_1", "two_week_arm_1", "two_month_arm_1", "twelve_month_arm_1")
+
+# list of instruments
+exportInstruments(rcon)
+
+# list of events
+exportEvents(rcon)
+
+# list records
+exportRecords(rcon)
+
+# export field names
+exportFieldNames(rcon)
+
+# consented records
+consent.records.v1=c("BLS001A","BLS002A","BLS003A","BLS006A",
+                  "BLS007A","BLS008A","BLS010A","BLS011A",
+                  "BLS012A","BLS013A","BLS014A","BLS015A",
+                  "BLS016A","BLS019A","BLS020A","BLS023A",
+                  "BLS025A","BLS026A","BLS027A","BLS028A",
+                  "BLS029A","BLS030A","BLS032A","BLS033A",
+                  "BLS034A","BLS035A","BLS036A","BLS037A",
+                  "BLS038A","BLS039A","BLS040A","BLS041A",
+                  "BLS043A","BLS044A","BLS045A","BLS048A",
+                  "BLS049A","BLS050A","BLS051A","BLS052A",
+                  "BLS053A", "BLS054A","BLS055A","BLS056A",
+                  "BLS057A","BLS058A","BLS059A","BLS060A")
+
+# pull data
+ds_some_rows_v1 <- redcap_read(
+  batch_size=300,
+  records= consent.records.v1,
+  redcap_uri = uri, 
+  token      = beach_token, 
+  fields     = desired_fields_v1
+)$data
 
 # look at data
-dat=billing
+dat=ds_some_rows_v1
 head(dat); str(dat); names(dat)
 
 # **************************************************************************** #
 # ***************  General data formatting                                             
 # **************************************************************************** # 
 
+# months formatting
+str(dat)
+dat$crc_date_of_service=as.Date(dat$crc_date_of_service, "%Y-%m-%d")
+dat$month=month(dat$crc_date_of_service)
+dat$year=year(dat$crc_date_of_service)
+dat$month_yr=paste0(dat$month,"_",dat$year)
+dat$month_yr=as.factor(dat$month_yr)
+levels(dat$month_yr)
+
+# set the order of month_yr
+df1<- dat %>% 
+  mutate(month_yr = factor(month_yr, 
+                                    levels = c("6_2017","7_2017","8_2017","9_2017", 
+                                               "10_2017","11_2017","12_2017",
+                                               "1_2018","2_2018","3_2018",
+                                               "4_2018","5_2018","6_2018",
+                                               "7_2018","8_2018","9_2018",
+                                               "10_2018","11_2018","12_2018")))
+levels(df1$month_yr)
+
 # what is the ordering of redcap_events
-levels(dat$redcap_event_name)
+df1$redcap_event_name=as.factor(df1$redcap_event_name)
+levels(df1$redcap_event_name)
 
 # set the order of redcap_events
-df <- dat %>% 
+df2 <- df1 %>% 
   mutate(redcap_event_name = factor(redcap_event_name, 
                                     levels = c("baseline_arm_1",
                                                "third_trimester_arm_1", 
@@ -64,20 +124,19 @@ df <- dat %>%
                                                "six_month_arm_1",
                                                "twelve_month_arm_1")))
 # check odering of levels
-levels(df$redcap_event_name)
-
-# set the services ordering
-
+levels(df2$redcap_event_name)
+dim(df2) # 675 9
 
 # drop NA observations
-dat.s=df %>%
+dat.s=df2 %>%
   na.omit() %>%
   group_by(test_id, redcap_event_name) %>%
   arrange(crc_date_of_service) 
+dim(dat.s) # 479 9
 
 # how much per visit/participant?
 test=dat.s %>%
-  group_by(test_id, redcap_event_name) %>%
+  group_by(test_id, redcap_event_name, month_yr) %>%
   summarize(count=n_distinct(crc_service),
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
@@ -89,9 +148,9 @@ test %>%
             max(bill_sum))
 
 # how much per visit?
-dat.s %>%
+test %>%
   group_by(redcap_event_name) %>%
-  summarize(count=n_distinct(test_id),
+
             bill_mean=mean(crc_amount_due, na.rm=T),
             bill_sum=sum(crc_amount_due))
 
@@ -174,6 +233,21 @@ theme_set(theme_classic())
 
 # distribution of visits each month(histogram) vs cost
 h <- ggplot(test1, aes(crc_date_of_service, crc_amount_due)) + scale_fill_brewer(palette = "Spectral")
+
+            bill_mean=mean(bill_sum, na.rm=T),
+            bill_sum=sum(bill_sum))
+
+#ggplot2 histgram bar graph
+theme_set(theme_classic())
+dat.s$crc_service=as.factor(dat.s$crc_service)
+
+g <- ggplot(dat.s, aes(month_yr))
+g +  geom_bar(aes(fill=crc_service))
+
+
+# distribution of visits each month(histogram)
+h <- ggplot(dat.s, aes(month_yr, bill_sum)) + scale_fill_brewer(palette = "Spectral")
+
 h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
                    bins=24,
                    col="black", 
@@ -181,10 +255,6 @@ h + geom_histogram(aes(fill=redcap_event_name), stat = "Identity",
   labs(title="Clinical visits per Month cost breakdown", 
        subtitle="from july of 2017-January 2019") +
   theme(axis.text.x = element_text(angle=70, vjust =.6))
-
-
-
-
 
 # cost of each event as of now(bar chart)
 b <- ggplot(test1,aes(redcap_event_name,crc_amount_due)) 
@@ -197,21 +267,15 @@ b + geom_bar(stat="identity", width=.5, fill="orange3",
 
 
 
+# a box plot of the clincal visits by cost 
+bp <- ggplot(test2, aes(redcap_event_name, crc_amount_due))
+bp + geom_boxplot(varwidth=T, fill="red2") + 
+  labs(title="Box plot", 
+       subtitle="Cost grouped by Clinical Visits",
+       caption="Source: test2",
+       x="clinical visit",
+       y="billing amount") + 
+  theme(axis.text.x = element_text(angle=70, vjust =.6))
 
-
-
-
-# 3rd  $100
-# 2wk  $160
-# 2mo  $160
-# 12mo $160
-
-# CRC= $640
-# Inc= $160
-# Part= $800
-
-80*800= $64,000
-
-# total costs over time from 2016-2019.
 
 
